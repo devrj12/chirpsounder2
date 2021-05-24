@@ -339,7 +339,7 @@ if __name__ == "__main__":
         conf=cc.chirp_config(sys.argv[1])
     else:
         conf=cc.chirp_config()
-    
+    #import ipdb; ipdb.set_trace()
     d=drf.DigitalRFReader(conf.data_dir)
 
     # analyze serendpituous par files immediately after a chirp is detected

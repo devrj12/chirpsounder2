@@ -1,0 +1,159 @@
+
+
+## Logical Steps : 
+
+   1. Run through all data for ionograms
+   2. For each ionogram -- take the range data for certain frequency
+   3. Save it
+   4. Do this for all times
+   5. Make the RTI plot
+   6. Repeat it for other frequencies as well
+   
+   
+   
+freqs.shape
+(498,)
+freqs[0]
+0.0
+freqs[497]
+24850000.0
+freqs[497]/1e6
+24.85
+freqs[400]/1e6
+20.0
+freqs[100]/1e6
+5.0
+freqs[90]/1e6
+4.5
+freqs[70]/1e6
+3.5
+freqs[60]/1e6
+3.0
+freqs[80]/1e6
+4.0
+freqs[85]/1e6
+4.25
+freqs[90]/1e6
+4.5
+
+
+S = n.copy(ho[("S")])          # ionogram frequency-range
+freqs = n.copy(ho[("freqs")])  # frequency bins
+ranges = n.copy(ho[("ranges")])  # range gates
+Rate = n.copy(ho[("rate")])/1000  # Rate
+
+plt.pcolormesh(freqs/1e6, range_gates, dB, vmin=-3, vmax=30.0, cmap="inferno")
+
+dB = n.transpose(10.0*n.log10(S))
+if normalize_by_frequency == False:
+        dB = dB-n.nanmedian(dB)
+        
+S1 = S[80,:]
+
+dB1 = dB[:,80]
+
+#dB3 = np.stack((dB1,dB2),axis=1)
+
+dB3 = np.column_stack((dB1,dB2))
+
+t02 = np.array([t0, t01])
+
+t02a = np.column_stack((t02,t01))
+
+
+t02b = t02a.flatten()
+
+
+
+    fig,ax1 = plt.subplots()
+    new_times = [datetime.datetime.utcfromtimestamp(x) for x in T03]
+    new_times1 = [datetime.datetime.fromtimestamp(x) for x in T03]  #local-time
+    plt.pcolormesh(new_times, range_gates, dB3, vmin=-3, vmax=30.0, cmap="inferno")
+    cb = plt.colorbar()
+    cb.set_label("SNR (dB)")
+    plt.title("RTI plot for  %1.2f MHz \n%s (UTC)" %
+              (freqs[80]/1e6,  datetime.datetime.utcfromtimestamp(T03[1]).strftime('%Y-%m-%d')))
+    plt.xlabel("Time (UTC)")
+    plt.ylabel("One-way range offset (km)")
+    # plt.ylim([dr-conf.max_range_extent/1e3,dr+conf.max_range_extent/1e3])
+    plt.ylim([0, 4000])
+    #plt.xlim([0, 15])
+
+    
+    # plt.savefig(img_fname)
+    ax2 = ax1.twiny()
+    # Decide the ticklabel position in the new x-axis,
+    # then convert them to the position in the old x-axis
+    newlabel = [273.15,290,310,330,350,373.15] # labels of the xticklabels: the position in the new x-axis
+    k2degc = lambda t: t-273.15 # convert function: from Kelvin to Degree Celsius
+    newpos   = [k2degc(t) for t in newlabel]   # position of the xticklabels in the old x-axis
+    ax2.set_xticks(newpos)
+    ax2.set_xticklabels(newlabel)
+
+    ax2.xaxis.set_ticks_position('bottom') # set the position of the second x-axis to bottom
+    ax2.xaxis.set_label_position('bottom') # set the position of the second x-axis to bottom
+    ax2.spines['bottom'].set_position(('outward', 36))
+    ax2.set_xlabel('Temperature [K]')
+    ax2.set_xlim(ax1.get_xlim())
+    
+    ax2.xaxis.set_ticks_position('bottom') # set the position of the second x-axis to bottom
+    ax2.set_xlabel("Time (LT)")
+
+    plt.tight_layout()
+    
+    
+    ##
+    
+    T03diff = np1.diff(T03)
+    np1.where(T03 > 721)
+    
+    (T03[12] - T03[11])/720
+    
+    T03a = np1.arange(T03[0], T03[-1], 720)  # check this if T03[-1] requires to be added 720 or not ? # It doesn't and it is surprising as in an example I take, it requires.
+    
+    A03 = np1.array([0,2,8])
+    A03
+    array([0, 2, 8])
+    
+    A03a = np1.arange(A03[0], A03[-1],2)
+    A03a
+    array([0, 2, 4, 6])     
+    
+    
+    ## STEPS : 
+    
+    1. Built a regular time-series  - A (T03a)
+    2. Get the available time-series  - B (T03) . Note len(A) > len(B)
+    3. For every element in A, check if the closest corresponding element in B exists.
+    4. If it exists, keep the corresponding 'stripe' of dB3.
+    5. If it doesn't exist, insert a NaN stripe in new dB3.
+    
+    dB3test = np1.full([3999, 120], None)
+    dB3test[:] = np1.NaN
+    dB3new = np1.full([3999, 120], None)
+    for i, x in enumerate(T03a):
+         DIFF = abs(T03 - x)
+         MIN  = min(abs(T03 - x)
+        
+         if MIN < 2 :
+               ij = np1.where(DIFF == np1.amin(DIFF))[0][0]
+               dB3new[:,i] = dB3[:,ij]
+         else:
+               dB3new[:,i] = dB3test[:,i]  
+         
+    
+    
+    
+    
+     
+     
+     
+
+
+
+
+        
+        
+        
+        
+

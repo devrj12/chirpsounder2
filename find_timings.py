@@ -11,6 +11,7 @@ import sys
 import chirp_det as cd
 import os
 import time
+import ipdb
 
 def cluster_times(t,dt=0.1,dt2=0.02,min_det=2):
     t0s=dt*n.array(n.unique(n.array(n.round(t/dt),dtype=n.int)),dtype=n.float)
@@ -59,30 +60,37 @@ def scan_for_chirps(conf,dt=0.1):
             return
     else:
         # look for all in batch mode
+        #fl=glob.glob("%s/chirp*.h5"%(data_dir))
         fl=glob.glob("%s/2*/chirp*.h5"%(data_dir))
         fl.sort()
+        
+    ipdb.set_trace()
         
     chirp_rates=[]
     f0=[]    
     chirp_times=[]
     snrs=[]        
     for f in fl:
-        h=h5py.File(f,"r")
-        chirp_times.append(n.copy(h[("chirp_time")]))
-        chirp_rates.append(n.copy(h[("chirp_rate")]))
-        f0.append(n.copy(h[("f0")]))
-        if "snr" in h.keys():
-            snrs.append(n.copy(h[("snr")]))
-        else:
-            snrs.append(-1.0)
-        h.close()
+        try:
+        	h=h5py.File(f,"r")
+        	chirp_times.append(n.copy(h[("chirp_time")]))
+        	chirp_rates.append(n.copy(h[("chirp_rate")]))
+        	f0.append(n.copy(h[("f0")]))
+        	if "snr" in h.keys():
+            		snrs.append(n.copy(h[("snr")]))
+        	else:
+            		snrs.append(-1.0)
+        	h.close()
+        except OSError as error : 
+        	print('Unable to open file') 	
 
     chirp_times=n.array(chirp_times)
     chirp_rates=n.array(chirp_rates)
     f0=n.array(f0)
     snrs=n.array(snrs)        
 
-
+    
+    
     n_ionograms=0
     crs=n.unique(chirp_rates)
     for c in crs:
@@ -135,7 +143,9 @@ if __name__ == "__main__":
         conf=cc.chirp_config(sys.argv[1])
     else:
         conf=cc.chirp_config()
-
+        
+    ipdb.set_trace()
+    
     if conf.realtime:
         print("Scanning for timings indefinitely")
         while True:
