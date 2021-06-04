@@ -88,20 +88,20 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
 
     SSin = k_largest_index_argsort(S, k=10)
     SSrn = n.sort(range_gates[SSin[:, 1]])
-    ipdb.set_trace()
+    import ipdb; ipdb.set_trace()
 
     #if (Rate == 100) and (dr < 1000) and max(range_gates) > 1000 and min(range_gates) < 500:
     if (Rate == 100) and (dr < 1000) and SSrn[0] < 1000 and SSrn[0] > 500:
         
         output_dir11 = output_dir1 + '/' + cd.unix2dirname(t0)
         
-        if not os.path.exists(output_dir11):
-        	os.makedirs(output_dir11)
-        try:    
-        	shutil.copy(f,output_dir11)
-        except shutil.SameFileError:
-   	     pass
-        #import ipdb; ipdb.set_trace()
+       # if not os.path.exists(output_dir11):
+       # 	os.makedirs(output_dir11)
+       # try:    
+       # 	shutil.copy(f,output_dir11)
+       # except shutil.SameFileError:
+       #     pass
+        import ipdb; ipdb.set_trace()
         # print('inside')
         plt.figure(figsize=(1.5*8, 1.5*6))
         plt.pcolormesh(freqs/1e6, range_gates, dB,vmin=-3, vmax=30.0, cmap="inferno")

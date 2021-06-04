@@ -40,7 +40,7 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
             S[i, :] = (S[i, :]-noise)/noise
         S[S <= 0.0] = 1e-3
 
-    ipdb.set_trace()
+    #ipdb.set_trace()
     max_range_idx = n.argmax(n.max(S, axis=0))
     #from numpy import unravel_index
     #unravel_index(S.argmax(),S.shape)
@@ -50,16 +50,18 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
     if normalize_by_frequency == False:
         dB = dB-n.nanmedian(dB)
 
-    # assume that t0 is at the start of a standard unix second
-    # therefore, the propagation time is anything added to a full second
+    # assume that chirp-start time is at the start of a standard unix second
+    # therefore, the propagation time is anything added to a full second (t0 is calculated chirp-start time)
 
     dt = (t0-n.floor(t0))
     dr = dt*c.c/1e3
+    print(dr)
     range_gates = dr+2*ranges/1e3
     r0 = range_gates[max_range_idx]
+    print(r0)
+    #ipdb.set_trace()
     plt.figure(figsize=(1.5*8, 1.5*6))
-    plt.pcolormesh(freqs/1e6, range_gates, dB,
-                   vmin=-3, vmax=30.0, cmap="inferno")
+    plt.pcolormesh(freqs/1e6, range_gates, dB,vmin=-3, vmax=30.0, cmap="inferno")
     cb = plt.colorbar()
     cb.set_label("SNR (dB)")
     plt.title("Chirp-rate %1.2f kHz/s t0=%1.5f (unix s)\n%s (UTC)" % (float(n.copy(ho[("rate")]))/1e3, float(n.copy(ho[("t0")])), cd.unix2datestr(float(n.copy(ho[("t0")])))))
@@ -95,7 +97,7 @@ if __name__ == "__main__":
     else:
         #fl = glob.glob("%s/*/lfm*.h5" % (conf.output_dir))
         fl = glob.glob("%s/lfm*.h5" % (conf.output_dir))
-        ipdb.set_trace()
+        #ipdb.set_trace()
         fl.sort()
         for f in fl:
             plot_ionogram(conf, f)

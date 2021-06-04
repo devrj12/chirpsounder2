@@ -160,10 +160,17 @@ def chirp_downconvert(conf,
     S=spectrogram(n.conj(zd),window=fftlen,step=fft_step,wf=ss.hann(fftlen))
 
     freqs=rate*n.arange(S.shape[0])*fft_step/sr_dec
+    
+    ## fftlen is number of fftbins we have. 
+    ## 
+    
     range_gates=ds*n.fft.fftshift(n.fft.fftfreq(fftlen,d=1.0/sr_dec))
+    
+    ## so range_gates is essentially converting the frequency components into distance (m/Hz)
 
-    ridx=n.where(n.abs(range_gates) < conf.max_range_extent)[0]
+    ridx=n.where(n.abs(range_gates) < conf.max_range_extent)[0] # [0] is to extract array out of the tuple which is created in the first place
 
+    import ipdb; ipdb.set_trace()
     
     try:
         print(t0)
@@ -176,7 +183,7 @@ def chirp_downconvert(conf,
         ho["S"]=S[:,ridx]          # ionogram frequency-range
         ho["freqs"]=freqs  # frequency bins
         ho["rate"]=rate    # chirp-rate
-        ho["ranges"]=range_gates[ridx]
+        ho["ranges"]=range_gates[ridx]  # get the range_gates which are less than the defined max_range_extent
         ho["t0"]=t0
         ho["id"]=cid
         ho["sr"]=float(sr_dec) # ionogram sample-rate

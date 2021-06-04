@@ -107,17 +107,21 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
         range_gates2 = range_gates
         
 
-        global ch1, dB3, T03, T01
+        global ch1, dB3, T03, T01,range_gates3
         ch1 += 1
 
         if ch1 == 1:
             dB3 = dB1
             T01 = n.array([t0])
             T03 = T01
+            range_gates3 = range_gates
+            
         else:
             dB3 = n.column_stack((dB3, dB1))
             T03 = n.hstack((T03, n.array([t0])))
+            range_gates3 = n.column_stack((range_gates3,range_gates))
             # T03 = T03.flatten()
+            # ipdb.set_trace()
 
         # with open('/home/dev/Downloads/chirp_juha/Time_2.data', 'wb') as f:
         #   pickle.dump(Time_1, f)
@@ -128,16 +132,16 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
 
 
 def save_var():
-    global ch1, dB3, T03, T01, range_gates, range_gates2, freqs
+    global ch1, dB3, T03, T01, range_gates, range_gates2, range_gates3, freqs
     #import ipdb; ipdb.set_trace()
-    path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + '.data'
+    path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'b.data'
     #path1 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + '.data'
     #path1 = output_dir1 + '/' + cd.unix2dirname(T03[0])[5:10] + '.data'
 
     print(path1)
     ipdb.set_trace()
     with open(path1, 'wb') as f:
-        pickle.dump([T03, dB3, range_gates, range_gates2, freqs], f)
+        pickle.dump([T03, dB3, range_gates, range_gates2, range_gates3, freqs], f)
 
     # with open('/home/dev/Downloads/chirp_juha2b/Time_2.data', 'rb') as f:
     #    T03, dB3, range_gates =  pickle.load(f)
@@ -162,6 +166,7 @@ if __name__ == "__main__":
             dirs1 = dirs[j]
             if dirs1[0:4] == '2021':
                 path = os.path.join(rootdir, dirs1)
+                print(dirs1)
                 os.chdir(path)
                 fl = glob.glob("%s/lfm*.h5" % (path))
                 fl.sort()
@@ -171,6 +176,7 @@ if __name__ == "__main__":
                 T03 = n.array([])
                 T01 = n.array([])
                 range_gates = n.array([])
+                range_gates3 = n.array([])
                 freqs = n.array([])
 
                 #ipdb.set_trace()
@@ -179,6 +185,7 @@ if __name__ == "__main__":
 
             if len(fl) > 1:
                 for f in fl:
+                    print(f)
                     plot_ionogram(conf, f)
 
                 save_var()

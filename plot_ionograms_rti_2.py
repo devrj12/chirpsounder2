@@ -32,17 +32,17 @@ def k_largest_index_argsort(S, k):
     return n.column_stack(n.unravel_index(idx, S.shape))
 
 
-def save_var(img_fname="img_1a.png"):
+def save_var(img_fname="img_1b.png"):
     print('check')
 
-    global dB3, T03, range_gates, freqs, range_gates2
+    global dB3, T03, range_gates, freqs, range_gates2, range_gates3
     # with open('/home/dev/Downloads/chirp_juha2b/Time_2.data', 'wb') as f:
     #    pickle.dump([T03, dB3, range_gates],f)
 
-    path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + '.data'
+    path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'b.data'
 
     with open(path1, 'rb') as f:
-        T03, dB3, range_gates, range_gates2, freqs = pickle.load(f)
+        T03, dB3, range_gates, range_gates2, range_gates3, freqs = pickle.load(f)
 
     T03a = n.arange(T03[0], T03[-1] + 10, 720)
     T03b = T03a
