@@ -1,0 +1,22 @@
+
+Why doesn't work ? : 
+
+plt.pcolormesh(new_times[105:106],range_gatesnew[:,105:106],dB3new[:,105:106],vmin=-3,vmax=30.0,cmap="inferno")
+
+for ja in range(0,120):
+       plt.pcolormesh(new_times[ja:ja+2], range_gatesnew[:,ja:ja+2], dB3new[:,ja:ja+2],vmin=-3, vmax=30.0, cmap="inferno")
+
+Why works ?  :  
+
+plt.pcolormesh(new_times[105:107],range_gatesnew[:,105:107],dB3new[:,105:107],vmin=-3,vmax=30.0,cmap="inferno")
+plt.pcolormesh(new_times[105:108],range_gatesnew[:,105:108],dB3new[:,105:108],vmin=-3,vmax=30.0,cmap="inferno")
+
+plt.pcolormesh(new_times,range_gatesnew,dB3new,vmin=-3,vmax=30.0,cmap="inferno")
+
+
+
+
+
+
+
+

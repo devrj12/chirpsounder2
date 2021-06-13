@@ -141,6 +141,7 @@ def save_var(img_fname="img_1b.png"):
         DIFF = abs(T03 - x)
         MIN = min(abs(T03-x))
         if MIN < 2:
+            print(i)
             ij = n.where(DIFF == n.amin(DIFF))[0][0]
             dB3new[:, i] = dB3[:, ij]
             range_gatesnew[:,i] = range_gates3[:,ij]
@@ -148,7 +149,8 @@ def save_var(img_fname="img_1b.png"):
             # the array out of the tuple. And the second index [0] gets the index out of the array.
         else:
             dB3new[:, i] = dB3test[:, i]
-            range_gatesnew[:,i] = range_gatestest[:,i]
+            #range_gatesnew[:,i] = range_gatestest[:,i]
+            range_gatesnew[:,i] = range_gates2
 
     # ipdb.set_trace()
     fig = plt.figure(figsize=(1.5*10, 1.5*3))
@@ -182,7 +184,7 @@ def save_var(img_fname="img_1b.png"):
     for ja in range(0,120):
                 #print(ja)
                 #plt.pcolormesh(new_times[ja:ja+2],np.column_stack((range_gatesnew[:,ja],range_gatesnew[:,ja])),dB3new[0:3998,ja:ja+1],vmin=-3,vmax=30.0,cmap="inferno")
-                plt.pcolormesh(new_times[ja:ja+1], range_gatesnew[:,ja], dB3new[:,ja:ja+1],vmin=-3, vmax=30.0, cmap="inferno")
+                plt.pcolormesh(new_times[ja:ja+2], range_gatesnew[:,ja:ja+2], dB3new[:,ja:ja+2],vmin=-3, vmax=30.0, cmap="inferno")
 
 
     #plt.pcolormesh(new_times, range_gates2, dB3new,vmin=-3, vmax=30.0, cmap="inferno")
