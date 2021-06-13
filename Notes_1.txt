@@ -1,0 +1,37 @@
+  
+ The steps in Chirpsounder2 are – 
+    (I)  Collect data – thor.py (creates raw I/Q data)
+    (II) Set configurations (Sample rate etc.)
+   (III) Detect chirps (detect_chirps.py) (creates chirp ...h5 files)
+   (IV)  Find Timings of those chirps (find_timings.py) (creates par...h5 files)
+    (V)  Generate Ionograms (Calc_Ionograms.py) (creates lfm ... h5 files)
+   (VI)  Plot Ionograms (plot_Ionograms.py) (makes plot from the lfm  files)
+ 
+ -- Machine-Learning Discussion
+      - find in Juha's code how he captures the data/stores the data/trains them/ 
+      - install tensorflow (CPU ? or GPU ? )
+
+## 
+Label -- Training Set and Validation Set --- Apply AI to get model --- Apply the model in the Validation Set --- and ???
+
+From observation of iono_scale package, the steps could be : 
+ 1. label_iono
+ 2. iono_learn
+ 3. iono_scale_validate
+ 4. iono_scale
+ 
+ The workflow is : 
+      (i)   Collect data
+      (ii)  Build model
+      (iii) Train the network
+      (iv)  Evaluate
+      (v)   Predict
+
+Steps for today -- 
+                      (1) Apply find_timings.py/Calc_Ionograms.py/plot_Ionograms.py .. I can't apply Calc_Ionograms.py as it requires reading files from data collected as thor.py which I don't have. 
+                      (2) Watch Udemy machine-learning videos
+                      (3) Seek to apply Iono_learn 
+                      
+****
+HamSCI (Thursday Telecon) : Steve Cerwin , Diego Sanchez, Keith Groves, Cedar Emails/ GEM Community,  (Citizen Science Audience), Leif Svalgaard (Stanford),
+*** Nathaniel

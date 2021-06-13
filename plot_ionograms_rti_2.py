@@ -17,6 +17,8 @@ import datetime
 from datetime import timezone
 from numpy import unravel_index
 import pickle
+import matplotlib as mpl
+
 
 import cartopy.crs as ccrs
 import ipdb
@@ -25,6 +27,8 @@ import ipdb
 rootdir = '/home/dev/Downloads/chirp_juha2b'
 # for subdir, dirs, files in os.walk(rootdir):
 dirs = sorted(os.listdir(rootdir))
+
+output_dir1 = "/home/dev/Downloads/chirp_juha2b/Plots20"
 
 
 def k_largest_index_argsort(S, k):
@@ -39,7 +43,8 @@ def save_var(img_fname="img_1b.png"):
     # with open('/home/dev/Downloads/chirp_juha2b/Time_2.data', 'wb') as f:
     #    pickle.dump([T03, dB3, range_gates],f)
 
-    path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'b.data'
+    #path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'c.data'
+    path1 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'c.data'
 
     with open(path1, 'rb') as f:
         T03, dB3, range_gates, range_gates2, range_gates3, freqs = pickle.load(f)
@@ -80,6 +85,7 @@ def save_var(img_fname="img_1b.png"):
         dtest = int(datetime.datetime.utcfromtimestamp(T03[0]).strftime("%d"))
         jj = 0
         while True:
+            #subtract 720 until it gets to beginning of the day and in next while loop, add 720 until it gets to the end of the day	
             if (int(datetime.datetime.utcfromtimestamp(T03[0] - 720*jj).strftime("%d")) - dtest) < 0:
                 T03b = n.insert(T03b, 0, T03[0] - 720*(jj-1))
                 print('jj= %1.2f' % (jj))
@@ -100,7 +106,9 @@ def save_var(img_fname="img_1b.png"):
         T03bb = dt2.replace(tzinfo=timezone.utc).timestamp()
         #T03a = n.arange(T03b[0], T03b[-1]+720, 720) ## commenting as it sometimes takes the data-points to next day
         T03a = n.arange(T03b[0], T03bb, 720)
-
+            
+        # It is assuming there will be only one schedule change in a day. I think it will be good to confirm that's what is being implemented (assumed)
+        # and if it is the case, flag an error in case there is more than one schedule change if ever encountered.
         if len(n.where(abs(x4) > 1)[0]) > 0:
             jj2 = (jj - 1) + x5 - 1
             T03a1 = T03a[0:jj2]
@@ -112,9 +120,21 @@ def save_var(img_fname="img_1b.png"):
     dB3test = n.full([3999, 120], None)
     dB3test[:] = n.NaN
     dB3new = n.full([3999, 120], None)
+    
+    range_gatestest = n.full([3999, 120], None)
+    range_gatestest[:] = n.NaN
+    range_gatesnew = n.full([3999,120],None)
 
     print(len(T03a))
-    ipdb.set_trace()
+    #ipdb.set_trace()
+    
+    ## STEPS : 
+    
+    #1. Built a regular time-series  - A (T03a)
+    #2. Get the available time-series  - B (T03) . Note len(A) > len(B)
+    #3. For every element in A, check if the closest corresponding element in B exists.
+    #4. If it exists, keep the corresponding 'stripe' of dB3.
+    #5. If it doesn't exist, insert a NaN stripe in new dB3.
 
     for i, x in enumerate(T03a):
         print(i)
@@ -123,10 +143,12 @@ def save_var(img_fname="img_1b.png"):
         if MIN < 2:
             ij = n.where(DIFF == n.amin(DIFF))[0][0]
             dB3new[:, i] = dB3[:, ij]
+            range_gatesnew[:,i] = range_gates3[:,ij]
             # it (ij) comes out as a tuple which contains an array. So, the first index [0] gets
             # the array out of the tuple. And the second index [0] gets the index out of the array.
         else:
             dB3new[:, i] = dB3test[:, i]
+            range_gatesnew[:,i] = range_gatestest[:,i]
 
     # ipdb.set_trace()
     fig = plt.figure(figsize=(1.5*10, 1.5*3))
@@ -152,7 +174,18 @@ def save_var(img_fname="img_1b.png"):
     ax1 = fig.add_subplot(122)
 
     dB3new = dB3new.astype(n.float)
-    plt.pcolormesh(new_times, range_gates2, dB3new,vmin=-3, vmax=30.0, cmap="inferno")
+    
+    mpl1 = mpl.dates.date2num(new_times)
+
+    
+    ipdb.set_trace()
+    for ja in range(0,120):
+                #print(ja)
+                #plt.pcolormesh(new_times[ja:ja+2],np.column_stack((range_gatesnew[:,ja],range_gatesnew[:,ja])),dB3new[0:3998,ja:ja+1],vmin=-3,vmax=30.0,cmap="inferno")
+                plt.pcolormesh(new_times[ja:ja+1], range_gatesnew[:,ja], dB3new[:,ja:ja+1],vmin=-3, vmax=30.0, cmap="inferno")
+
+
+    #plt.pcolormesh(new_times, range_gates2, dB3new,vmin=-3, vmax=30.0, cmap="inferno")
     # plt.contourf(new_times, range_gates, dB3new, vmin=-3, vmax=30.0, cmap="inferno",levels=30)
     cb = plt.colorbar()
     cb.set_label("SNR (dB)")
@@ -166,7 +199,7 @@ def save_var(img_fname="img_1b.png"):
     # plt.savefig(img_fname)
     ipdb.set_trace()
     plt.tight_layout()
-    plt.savefig(img_fname, bbox_inches='tight')
+    #plt.savefig(img_fname, bbox_inches='tight')
     plt.show()
 
   
@@ -196,14 +229,20 @@ if __name__ == "__main__":
             dirs1 = dirs[j]
             if dirs1[0:4] == '2021':
                 path = os.path.join(rootdir, dirs1)
+                print(dirs1)
                 os.chdir(path)
                 fl = glob.glob("%s/lfm*.h5" % (path))
                 fl.sort()
-
+  
+                ch1 = 0
                 dB3 = n.array([])
                 T03 = n.array([])
+                T01 = n.array([])               
                 range_gates = n.array([])
+                range_gates2 = n.array([])
+                range_gates3 = n.array([])
                 freqs = n.array([])
+                
                 # ipdb.set_trace()
                 # fl = glob.glob("%s/*/lfm*.h5" % (conf.output_dir))
                 # fl = glob.glob("%s/lfm*.h5" % (conf.output_dir))

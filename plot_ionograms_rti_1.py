@@ -26,7 +26,7 @@ rootdir = '/home/dev/Downloads/chirp_juha2b'
 # for subdir, dirs, files in os.walk(rootdir):
 dirs = sorted(os.listdir(rootdir))
 
-output_dir1 = "/home/dev/Downloads/chirp_juha2b/Plots6"
+output_dir1 = "/home/dev/Downloads/chirp_juha2b/Plots20"
 
 
 #ch1 = 0
@@ -83,10 +83,15 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
     # Three tips - chirp-rate / range / use list to append
     max_range_idx = n.argmax(n.max(S, axis=0))
     # axis 0 is the direction along the rows
-
+        
+    from numpy import unravel_index
+    unarg = unravel_index(S.argmax(),S.shape)
+    
     dB = n.transpose(10.0*n.log10(S))
     if normalize_by_frequency == False:
         dB = dB-n.nanmedian(dB)
+    
+    unarg1 = unravel_index(dB.argmax(),dB.shape)
 
     # assume that t0 is at the start of a standard unix second
     # therefore, the propagation time is anything added to a full second
@@ -99,13 +104,32 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
     SSin = k_largest_index_argsort(S, k=10)
     SSrn = n.sort(range_gates[SSin[:, 1]])
     dB1 = dB[:, 80]
+    #print(range_gates)
+    
+    dB1a = dB[:,unarg1[1]]
+    dB2 = dB1a[dB1a>0]
+    pos = n.argwhere(dB1a > 0)
+    rg_2 = range_gates[pos]
+    ast = n.std(dB2)
+    am = n.max(dB2)
+    apos = n.argwhere(dB2 > (am -3*ast))
+    rg_3 = rg_2[apos]
 
-    if (Rate == 100) and (dr < 1000) and max(range_gates) > 1000 and min(range_gates) < 500:
+    arr = []
+    for j in rg_3:
+            arr.append(j[0][0])
+            
+    arr1 = n.array(arr)            
+    pos1 = n.argwhere(arr1 < 1000)
+    
+
+    #if (Rate == 100) and (dr < 1000) and max(range_gates) > 1000 and min(range_gates) < 500:
         # if (Rate == 100) and (dr < 1000) and SSrn[0] < 1000 and SSrn[0] > 500:
-        
+    if ((Rate == 100) and (r0 < 1000)) |((Rate == 100) and (r0 > 1000) and (len(pos1) > 0)) :
+        print('yes')
         global range_gates2
         range_gates2 = range_gates
-        
+        T0all.append(t0)
 
         global ch1, dB3, T03, T01,range_gates3
         ch1 += 1
@@ -134,8 +158,8 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
 def save_var():
     global ch1, dB3, T03, T01, range_gates, range_gates2, range_gates3, freqs
     #import ipdb; ipdb.set_trace()
-    path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'b.data'
-    #path1 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + '.data'
+    #path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'c.data'
+    path1 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'c.data'
     #path1 = output_dir1 + '/' + cd.unix2dirname(T03[0])[5:10] + '.data'
 
     print(path1)
@@ -175,6 +199,7 @@ if __name__ == "__main__":
                 dB3 = n.array([])
                 T03 = n.array([])
                 T01 = n.array([])
+                T0all = []
                 range_gates = n.array([])
                 range_gates3 = n.array([])
                 freqs = n.array([])
@@ -187,5 +212,6 @@ if __name__ == "__main__":
                 for f in fl:
                     print(f)
                     plot_ionogram(conf, f)
-
+                    
+                ipdb.set_trace() 
                 save_var()

@@ -17,7 +17,7 @@ from numpy import unravel_index
 import ipdb
 
 
-output_dir1 = "/home/dev/Downloads/chirp_juha2b/Plots10"
+output_dir1 = "/home/dev/Downloads/chirp_juha2b/Plots13"
 
 
 def k_largest_index_argsort(S, k):
@@ -73,10 +73,15 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
     # Three tips - chirp-rate / range / use list to append
     max_range_idx = n.argmax(n.max(S, axis=0))
     # axis 0 is the direction along the rows
+    from numpy import unravel_index
+    unarg = unravel_index(S.argmax(),S.shape)
+    print(freqs[unarg[0]]/1e6)
 
     dB = n.transpose(10.0*n.log10(S))
     if normalize_by_frequency == False:
         dB = dB-n.nanmedian(dB)
+    
+    unarg1 = unravel_index(dB.argmax(),dB.shape)
 
     # assume that t0 is at the start of a standard unix second
     # therefore, the propagation time is anything added to a full second
@@ -88,12 +93,38 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
 
     SSin = k_largest_index_argsort(S, k=10)
     SSrn = n.sort(range_gates[SSin[:, 1]])
-    import ipdb; ipdb.set_trace()
+    #import ipdb; ipdb.set_trace()
+    
+    dB1 = dB[:,unarg1[1]]
+    dB2 = dB1[dB1>0]
+    pos = n.argwhere(dB1 > 0)
+    rg_2 = range_gates[pos]
+    ast = n.std(dB2)
+    am = n.max(dB2)
+    apos = n.argwhere(dB2 > (am -3*ast))
+    rg_3 = rg_2[apos]
+
+    arr = []
+    for j in rg_3:
+            arr.append(j[0][0])
+            
+    arr1 = n.array(arr)            
+    pos1 = n.argwhere(arr1 < 1000)
+    #ipdb.set_trace()
 
     #if (Rate == 100) and (dr < 1000) and max(range_gates) > 1000 and min(range_gates) < 500:
-    if (Rate == 100) and (dr < 1000) and SSrn[0] < 1000 and SSrn[0] > 500:
-        
+    #if (Rate == 100) and (dr < 1000) and SSrn[0] < 1000 and SSrn[0] > 500:
+    if ((Rate == 100) and (r0 < 1000)) |((Rate == 100) and (r0 > 1000) and (len(pos1) > 0)) :
+    #if ((Rate == 100) and (r0 < 1000)) :
+    
+        global ch1
         output_dir11 = output_dir1 + '/' + cd.unix2dirname(t0)
+        ch1 += 1
+        print(ch1)
+        print(dr)
+        print(r0)
+        print(t0)
+        T0all.append(t0)
         
        # if not os.path.exists(output_dir11):
        # 	os.makedirs(output_dir11)
@@ -101,7 +132,7 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
        # 	shutil.copy(f,output_dir11)
        # except shutil.SameFileError:
        #     pass
-        import ipdb; ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
         # print('inside')
         plt.figure(figsize=(1.5*8, 1.5*6))
         plt.pcolormesh(freqs/1e6, range_gates, dB,vmin=-3, vmax=30.0, cmap="inferno")
@@ -124,12 +155,12 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
         #plt.show()
         #import ipdb
         #ipdb.set_trace()
-        #plt.savefig(img_fname1)
-        ipdb.set_trace()
+        plt.savefig(img_fname1)
+        #ipdb.set_trace()
         #plt.savefig(output_dir1 + img_fname3)
 
         # plt.savefig(img_fname2)
-        ipdb.set_trace()
+        #ipdb.set_trace()
         plt.close()
         plt.clf()
         ho.close()
@@ -149,9 +180,13 @@ if __name__ == "__main__":
                 plot_ionogram(conf, f)
             time.sleep(10)
     else:
-        #fl=glob.glob("%s/*/lfm*.h5" % (conf.output_dir))
-        fl = glob.glob("%s/lfm*.h5" % (conf.output_dir))
-        # import ipdb; ipdb.set_trace()
+        fl=glob.glob("%s/*/lfm*.h5" % (conf.output_dir))
+        #fl = glob.glob("%s/lfm*.h5" % (conf.output_dir))
+        #import ipdb; ipdb.set_trace()
         fl.sort()
+        ch1 = 0
+        T0all = []
         for f in fl:
             plot_ionogram(conf, f)
+        
+        ipdb.set_trace()    

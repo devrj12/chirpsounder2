@@ -30,7 +30,7 @@ range_gates = n.array([])
 range_gates3 = n.array([])
 freqs = n.array([])
 
-output_dir1 = "/home/dev/Downloads/chirp_juha2b/Plots9"
+output_dir1 = "/home/dev/Downloads/chirp_juha2b/PlotsRTI"
 
 
 def k_largest_index_argsort(S, k):

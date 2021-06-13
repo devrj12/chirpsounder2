@@ -14,18 +14,18 @@
     			# m/Hz round trip
     			return(dt*c.c/2.0)
   
-  		   dr=conf.range_resolution
+  		   dr1=conf.range_resolution
                   sr=conf.sample_rate
                   dec=2500                    %% [decimation]
                   sr_dec = sr/dec
                   ds=get_m_per_Hz(rate)
                   
-                  fftlen = int(sr_dec*ds/dr/2.0)*2
+                  fftlen = int(sr_dec*ds/dr1/2.0)*2
                   fft_step=int((df/rate)*sr_dec)
   
                   range_gates=ds*n.fft.fftshift(n.fft.fftfreq(fftlen,d=1.0/sr_dec))
                   
-                  
+                  [For all 100 kHz , should range_gates be constant ? Why should it not be ?]
                   
                   ridx = n.where(n.abs(range_gates) < conf.max_range_extent)[0]
                   
@@ -59,12 +59,12 @@
             
             dt = (t0-n.floor(t0))
     	    dr = dt*c.c/1e3
-            range_gates = dr+2*ranges/1e3
-            r0 = range_gates[max_range_idx]
+            range_gates1 = dr+2*ranges/1e3
+            r0 = range_gates1[max_range_idx]
             
             
  Even if dr ~ 2000 km, the ranges are also high in numbers and dr compensates for it in the definition of range_gates where twice the ranges are added to 'dr'. 
- So, a better filter would be see if the spectrum maximizes below 1000 km in range_gates ! Instead of checking if dr < 1000 as we are seeing dr ~ 2000 but 
+ So, a better filter would be to see if the spectrum maximizes below 1000 km in range_gates ! Instead of checking if dr < 1000 as we are seeing dr ~ 2000 but 
  range_gates can still maximize below 1000 km in the example we are working with. 
     
     

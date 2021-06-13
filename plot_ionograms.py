@@ -12,6 +12,7 @@ import os
 import time
 
 import ipdb
+ranges_ch = []
 
 def plot_ionogram(conf, f, normalize_by_frequency=True):
     ho = h5py.File(f, "r")
@@ -33,6 +34,7 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
     S = n.copy(ho[("S")])          # ionogram frequency-range
     freqs = n.copy(ho[("freqs")])  # frequency bins
     ranges = n.copy(ho[("ranges")])  # range gates
+    ranges_ch.append([ranges])
 
     if normalize_by_frequency:
         for i in range(S.shape[0]):
@@ -42,9 +44,10 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
 
     #ipdb.set_trace()
     max_range_idx = n.argmax(n.max(S, axis=0))
-    #from numpy import unravel_index
-    #unravel_index(S.argmax(),S.shape)
-
+    from numpy import unravel_index
+    unarg = unravel_index(S.argmax(),S.shape)
+    print(freqs[unarg[0]]/1e6)
+    
 
     dB = n.transpose(10.0*n.log10(S))
     if normalize_by_frequency == False:
@@ -56,7 +59,7 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
     dt = (t0-n.floor(t0))
     dr = dt*c.c/1e3
     print(dr)
-    range_gates = dr+2*ranges/1e3
+    range_gates = dr + 2*ranges/1e3
     r0 = range_gates[max_range_idx]
     print(r0)
     #ipdb.set_trace()
