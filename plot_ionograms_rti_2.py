@@ -67,30 +67,55 @@ def save_var():
     # I am beginning with a simple case : only twice and consecutive which may not be the case as spurious detections can happen anywhere in any order
     if len_ch > 1:
     	x33 = x3[sch_ch[0]:sch_ch[-1]+2]  # I am using it to get an array of three elements. 
-    	if x33[0] ==  x33[-1]:            # Actually it is applicable for consecutive schedule changes (for such schedule change - sch_ch will have two consecutive elements and sch_ch[-1] + 2 will
-    		T03 = n.delete(T03,sch_ch[0]+1) # help me to get three elements for x33. There should be a check if there are multiple such consecutive schedule changes.    
-    	        dB3 = n.delete(dB3,sch_ch[0]+1,1)
-    	        range_gates3 = n.delete(range_gates3,sch_ch[0]+1,1)        	        
+    	 # Actually it is applicable for consecutive schedule changes (for such schedule change - sch_ch will have two consecutive elements and sch_ch[-1] + 2 will
+    	 # help me to get three elements for x33. There should be a check if there are multiple such consecutive schedule changes.  
+    	if x33[0] ==  x33[-1]:      
+    		T03 = n.delete(T03,sch_ch[0]+1)    
+    		dB3 = n.delete(dB3,sch_ch[0]+1,1)
+    		range_gates3 = n.delete(range_gates3,sch_ch[0]+1,1)    
+		  	    	        
     	x1 = [x % 720 for x in T03]
     	x3 = [round(y, 2) for y in x1]
     	x4 = n.diff([x3])[0]
-    
+   
     T03a = n.arange(T03[0], T03[-1] + 10, 720)
     T03b = T03a
     	
     if len(n.where(abs(x4) > 1)[0]) > 0:
         x5 = n.where(abs(x4) > 1)[0][0]+1
-
+    
+    ipdb.set_trace()
     # if it spans the complete time-range (len(T03a) == 120) and if there is schedule change, apply the corrections 
     if (len(T03a) == 120) & (len(n.where(abs(x4) > 1)[0]) > 0):
         x1a = [x % 720 for x in T03a]
         x3a = [round(ya, 2) for ya in x1a]
         x4a = n.diff([x3a])[0]
-        ipdb.set_trace()
-        x5a = n.where(abs(x4a) > 1)[0][0] + 1
-        T03a1 = T03a[0:(x5a)]
-        T03a2 = n.arange(T03a[x5a] + x4a[x5a-1], T03a[-1] + 720, 720)
-        T03a = n.concatenate((T03a1, T03a2))
+        # The increase has happened at x5 and hence, I am looking for equivalent element in T03a corresponding to (x5-1) position of T03. That's because
+        # upto that position, T03 is changed and I want to keep T03a unchanged upto that equivalent position which will be given by nn1! 
+        NN  = abs(T03a - T03[x5-1])
+        nn1 = np.where(NN==NN.min())[0][0]
+        nn2 = T03[x5] - T03[x5-1]
+        if nn2 < 1440:
+        	# Going upto nn1 requires it write [0:(nn1+1)] as the last element is not taken in Python. So, this portion is unchanged.
+        	T03a1 = T03a[0:(nn1+1)]
+        	# Edit the final element of T03ab
+        	dta = datetime.datetime.utcfromtimestamp(T03a[-1])
+        	dta2 = dt.replace(minute=59, second=59)
+        	## replacing the limit of the time-zone
+        	T03ab = dta2.replace(tzinfo=timezone.utc).timestamp()
+        	# Change starts here : Start it from (nn1 +1)the position as nn1 position is already covered. And, add the "change = x4[x5-1]" at (nn1 + 1)th position
+        	T03a2 = n.arange(T03a[nn1+1] + x4[x5-1], T03ab, 720)
+        	T03a = n.concatenate((T03a1, T03a2))
+	elif:
+        	print("Longer gap between schedule change -- edit script to handle it !")
+        	ipdb.set_trace()	
+
+        
+        #ipdb.set_trace()
+        #x5a = n.where(abs(x4a) > 1)[0][0] + 1
+        #T03a1 = T03a[0:(x5a)]
+        #T03a2 = n.arange(T03a[x5a] + x4a[x5a-1], T03a[-1] + 720, 720)
+        #T03a = n.concatenate((T03a1, T03a2))
 
     # x5 = [datetime.datetime.utcfromtimestamp(z) for z in T03]
 

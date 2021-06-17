@@ -32,7 +32,7 @@ The point is only this is used as criterion : n.where(abs(x4) > 1)[0]  for sched
 
   
  (2) While focussing in c.data, find out how schedule change is introduced twice on 2021-01-05. 
-     Find out which ionogram does it come from ? Does that ionogram look good to be belonging to Virginia ? 
+     Find out which ionogram does it come from ? Does that ionogram look good to be belonging to Virginia ?  -- I checked and it doesn't look to be belonging to Virginia.
      If it is, check why it is not handled in the code ? (And how it was handled in the code previously ?) 
      
      
@@ -41,6 +41,10 @@ The point is only this is used as criterion : n.where(abs(x4) > 1)[0]  for sched
 
 Let's think on that ! Most likely, that's the case. If we have T03 with the first and the last element for the day, T03a will span the whole day. But if there is schedule change in T03, there will 
 not be schedule change in T03a as T03a is constructed in the increments of 720 secs (i.e. without having the schedule change). 
+
+How do I fix it ? Find T03 value upto (x5-1)th position. Find T03a closest value. Find that position (say, x5a). Most likely it is the same (x5 - 1) position or maybe not! After this, apply the  correction in T03a from (x5a +1)th position. 
+
+But from x5-1 position to x5 position -- find how many "720s" are covered in T03 ? 
 
 (i) Confirmed --the bug (01-06b.data -- although it has schedule change, T03a doesn't span all the day but it confirms the points). How to fix it ? Find the position (in 120 length) in T03 where the schedule has changed and then apply that in T03a. It will need some thinking there. But, before proceeding, check it few more times !  
 
