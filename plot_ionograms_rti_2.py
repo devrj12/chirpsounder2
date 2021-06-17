@@ -36,27 +36,48 @@ def k_largest_index_argsort(S, k):
     return n.column_stack(n.unravel_index(idx, S.shape))
 
 
-def save_var(img_fname="img_1b.png"):
+#def save_var(img_fname="img_1b.png"):
+def save_var():
     print('check')
 
     global dB3, T03, range_gates, freqs, range_gates2, range_gates3
     # with open('/home/dev/Downloads/chirp_juha2b/Time_2.data', 'wb') as f:
     #    pickle.dump([T03, dB3, range_gates],f)
 
-    #path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'c.data'
-    path1 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'c.data'
-
-    with open(path1, 'rb') as f:
+    path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'b.data'
+    path2 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'c.data'
+    #ipdb.set_trace()
+    img_fname1 = "%s/%s/RTI-%s.png" % (output_dir1, dirs1, dirs1[0:10])
+    
+    #img_fname1 = "%s/%s/lfm_ionogram-%03d-%1.2f.png" % (output_dir1, cd.unix2dirname(t0), cid, t0)
+     
+    #ipdb.set_trace() 
+    with open(path2, 'rb') as f:
         T03, dB3, range_gates, range_gates2, range_gates3, freqs = pickle.load(f)
-
-    T03a = n.arange(T03[0], T03[-1] + 10, 720)
-    T03b = T03a
+        #T03, dB3, range_gates, freqs = pickle.load(f)
 
     # Check if there is change in schedule -- get the modulus, round it and take the differences of all values -- if any change, one or more of the differences will not be zero
     x1 = [x % 720 for x in T03]
     x3 = [round(y, 2) for y in x1]
     x4 = n.diff([x3])[0]
-
+    sch_ch  = n.where(abs(x4) > 1)[0]
+    len_ch = len(sch_ch)
+        
+    # check if schedule change occurs more than once in a given day and use that to remove spurious 'ionograms' 
+    # I am beginning with a simple case : only twice and consecutive which may not be the case as spurious detections can happen anywhere in any order
+    if len_ch > 1:
+    	x33 = x3[sch_ch[0]:sch_ch[-1]+2]  # I am using it to get an array of three elements. 
+    	if x33[0] ==  x33[-1]:            # Actually it is applicable for consecutive schedule changes (for such schedule change - sch_ch will have two consecutive elements and sch_ch[-1] + 2 will
+    		T03 = n.delete(T03,sch_ch[0]+1) # help me to get three elements for x33. There should be a check if there are multiple such consecutive schedule changes.    
+    	        dB3 = n.delete(dB3,sch_ch[0]+1,1)
+    	        range_gates3 = n.delete(range_gates3,sch_ch[0]+1,1)        	        
+    	x1 = [x % 720 for x in T03]
+    	x3 = [round(y, 2) for y in x1]
+    	x4 = n.diff([x3])[0]
+    
+    T03a = n.arange(T03[0], T03[-1] + 10, 720)
+    T03b = T03a
+    	
     if len(n.where(abs(x4) > 1)[0]) > 0:
         x5 = n.where(abs(x4) > 1)[0][0]+1
 
@@ -65,6 +86,7 @@ def save_var(img_fname="img_1b.png"):
         x1a = [x % 720 for x in T03a]
         x3a = [round(ya, 2) for ya in x1a]
         x4a = n.diff([x3a])[0]
+        ipdb.set_trace()
         x5a = n.where(abs(x4a) > 1)[0][0] + 1
         T03a1 = T03a[0:(x5a)]
         T03a2 = n.arange(T03a[x5a] + x4a[x5a-1], T03a[-1] + 720, 720)
@@ -79,7 +101,7 @@ def save_var(img_fname="img_1b.png"):
     # why when the new definition of T03a (line 75) is applied -- it goes beyond the last element of T03[b] as the last element
     # of T03[b] is less than (shrinked) its otherwise regular value (if there were no schedule change) ! So, the remedy is find when
     # the schedule change occurs and use those brackets while defining new T03a !
-
+    # ipdb.set_trace()
     # Make sure T03a covers the full 720*120 = 86400 secs for a UTC day. If it is less than that, build it !
     if len(T03a) < 120:
         dtest = int(datetime.datetime.utcfromtimestamp(T03[0]).strftime("%d"))
@@ -180,32 +202,35 @@ def save_var(img_fname="img_1b.png"):
     mpl1 = mpl.dates.date2num(new_times)
 
     
-    ipdb.set_trace()
-    for ja in range(0,120):
+    #ipdb.set_trace()
+    for ja in range(0,118):
                 #print(ja)
-                #plt.pcolormesh(new_times[ja:ja+2],np.column_stack((range_gatesnew[:,ja],range_gatesnew[:,ja])),dB3new[0:3998,ja:ja+1],vmin=-3,vmax=30.0,cmap="inferno")
-                plt.pcolormesh(new_times[ja:ja+2], range_gatesnew[:,ja:ja+2], dB3new[:,ja:ja+2],vmin=-3, vmax=30.0, cmap="inferno")
+                plt.pcolormesh(new_times[ja:ja+2],n.column_stack((range_gatesnew[:,ja],range_gatesnew[:,ja])),dB3new[:-1,ja:ja+1],vmin=-3,vmax=30.0,cmap="inferno")
+                #plt.pcolormesh(new_times[ja:ja+2], range_gatesnew[:,ja:ja+2], dB3new[:,ja:ja+2],vmin=-3, vmax=30.0, cmap="inferno")
 
 
     #plt.pcolormesh(new_times, range_gates2, dB3new,vmin=-3, vmax=30.0, cmap="inferno")
-    # plt.contourf(new_times, range_gates, dB3new, vmin=-3, vmax=30.0, cmap="inferno",levels=30)
+    #plt.pcolormesh(new_times, range_gatesnew, dB3new, vmin=-3, vmax=30.0, cmap="inferno")
     cb = plt.colorbar()
     cb.set_label("SNR (dB)")
-    plt.title("RTI plot for  %1.2f MHz \n%s (UTC)" % (freqs[80]/1e6,  datetime.datetime.utcfromtimestamp(T03[1]).strftime('%Y-%m-%d')))
+    plt.title("RTI plot for %1.2f MHz \n%s (UTC)" % (freqs[80]/1e6,  datetime.datetime.utcfromtimestamp(T03[1]).strftime('%Y-%m-%d')))
     plt.xlabel("Time (UTC)")
     plt.ylabel("One-way range offset (km)")
     # plt.ylim([dr-conf.max_range_extent/1e3,dr+conf.max_range_extent/1e3])
     plt.ylim([0, 4000])
     # plt.xlim([0, 15])
 
-    # plt.savefig(img_fname)
-    ipdb.set_trace()
+    #plt.savefig(img_fname1)
+    plt.xlim(new_times[0], new_times[-1])
+    #plt.xlim(datetime.datetime(2021,1,4), datetime.datetime(2021,1,5))
     plt.tight_layout()
+    #plt.savefig(img_fname1, bbox_inches='tight')
     #plt.savefig(img_fname, bbox_inches='tight')
-    plt.show()
+    #plt.show() 
+    #ipdb.set_trace()
 
   
-    # plt.savefig(img_fname1)
+    #plt.savefig(img_fname1)
     # plt.savefig(img_fname2)
     plt.close()
     plt.clf()

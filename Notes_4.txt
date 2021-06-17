@@ -1,19 +1,87 @@
 
-Why doesn't work ? : 
 
-plt.pcolormesh(new_times[105:106],range_gatesnew[:,105:106],dB3new[:,105:106],vmin=-3,vmax=30.0,cmap="inferno")
+****
+So, I have 01-xxc.data saved with new filter in Plot20 folder. I have 01-xxb.data saved as well in respective folders.  I am not sure which filter
+was applied to this data. (I checked and the variables 01-xxb.data has  dr < 1000 filters -- used to save the ionograms in Plot1 folders). Both the data-sets have same variables.
 
-for ja in range(0,120):
-       plt.pcolormesh(new_times[ja:ja+2], range_gatesnew[:,ja:ja+2], dB3new[:,ja:ja+2],vmin=-3, vmax=30.0, cmap="inferno")
+If I plot the RTI plot with .. c.data, there is problem for 2021-01-05. The schedule change occurs twice which wasn't imagined in the code I had written 
+previously. Surprisingly, the schedule change doesn't appear in .. b.data. So, next steps :
 
-Why works ?  :  
+ (1) Check if it is true schedule change doesn't appear in .. b.data (for 01-05 or for other days). It would be strange. If there is a day which suggests schedule change, see why it doesn't 
+      produce the error being produced for ...c.data ! Right now, it is appearing construction of T03a takes away schedule change ?
+      
+ While checking, for 01-06 - I get: 
+ 
+x4 :
 
-plt.pcolormesh(new_times[105:107],range_gatesnew[:,105:107],dB3new[:,105:107],vmin=-3,vmax=30.0,cmap="inferno")
-plt.pcolormesh(new_times[105:108],range_gatesnew[:,105:108],dB3new[:,105:108],vmin=-3,vmax=30.0,cmap="inferno")
+array([  0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0., 320.,  -1.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.])
 
-plt.pcolormesh(new_times,range_gatesnew,dB3new,vmin=-3,vmax=30.0,cmap="inferno")
+x3 :
+
+[159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 159.0, 479.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0, 478.0]
+
+The point is only this is used as criterion : n.where(abs(x4) > 1)[0]  for schedule change. And we have only one instance of t0 changing by > 1. The other one is probably when it changes by 1 is just an "adjustment" - I assume.  
+
+  
+ (2) While focussing in c.data, find out how schedule change is introduced twice on 2021-01-05. 
+     Find out which ionogram does it come from ? Does that ionogram look good to be belonging to Virginia ? 
+     If it is, check why it is not handled in the code ? (And how it was handled in the code previously ?) 
+     
+     
+     But here is a note. I found a bug in the code I had written. I need to confirm if it is a bug. I am constructing T03a from T03. If T03 is full (spans complete time range) and there has been a schedule change, the schedule change will not be there in T03a [Line 69 - 77 in .. rti_2.py]. Confirm this with ...b.data ? And take it from there ? 
 
 
+Let's think on that ! Most likely, that's the case. If we have T03 with the first and the last element for the day, T03a will span the whole day. But if there is schedule change in T03, there will 
+not be schedule change in T03a as T03a is constructed in the increments of 720 secs (i.e. without having the schedule change). 
+
+(i) Confirmed --the bug (01-06b.data -- although it has schedule change, T03a doesn't span all the day but it confirms the points). How to fix it ? Find the position (in 120 length) in T03 where the schedule has changed and then apply that in T03a. It will need some thinking there. But, before proceeding, check it few more times !  
+
+
+          [[ Another note -- For all the ...b.data , there is no day for which T03a spans all the day and there is schedule change in T03. It is one or another. Probably, it happens for 01-05c.data, that's why I got stuck with ... c.data. So, I should check -- the new ionograms introduced due to new filters have introduced a schedule change. But, it is little strange as the schedule change only happens to one ionogram and it comes back to its previous schedule. This could -- possibly hint -- the new ionogram might not belong to Virginia and the schedule change is not 'real'. But, I will check again.]] 
+
+
+
+(A) Fixing double schedule change in a given day where it returns to previous schedule
+   
+   
+ x1[27] - x1[26]
+ 367.008859872818
+ x1[28] - x1[27]
+ -367.0088334083557
+ 
+ (T03[27]) - (T03[26])
+ 367.008859872818
+ T03[28] - T03[27]
+ 352.9911665916443
+ 
+ (T03[27] % 720) - (T03[26] % 720)
+  367.008859872818
+ (T03[28] % 720) - (T03[27] % 720)
+ -367.0088334083557
+ 
+
+The above is possible. There is nothing which should negate it and that's why it is happening. But the steps for our goals are :
+
+        (1) Detect schedule changes [done]
+        (2) Mark the time gaps (positions) in T03 between the positions they happen [to-be-done]
+        (3) If the schedule change happens between two adjacent points and if the third reverts to the first of those two adjacent points, discard the second where the change happened. 
+        
+                     
+ ** 
+ 
+ I checked the ionogram which creates two schedule changes on 2021-01-05 in ...c.data. The ionogram is : 
+ 
+               lfm_ionogram-000-1609826926.01.png.
+               
+               I will try to apply above appraoch for such instances. On this particular day, it has happened once. But, it could happen many times [ i.e. I could detect false ionograms due to the filter I have applied many times (at different times but also along adjacent times)]. So, I shall apply above flow-chart approach to accomodate those possibilities and remove these false ionograms from the data before making the RTI plots. But, I should come back to it to apply my planned cdf approach to create a new robust filter. Thanks.
 
 
 

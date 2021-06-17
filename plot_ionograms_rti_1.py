@@ -66,8 +66,7 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
     if not os.path.exists(out_dir1):
         os.makedirs(out_dir1)
 
-    print("Reading %s rate %1.2f (kHz/s) t0 %1.5f (unix)" %
-          (f, float(n.copy(ho[("rate")]))/1e3, float(n.copy(ho[("t0")]))))
+    print("Reading %s rate %1.2f (kHz/s) t0 %1.5f (unix)" % (f, float(n.copy(ho[("rate")]))/1e3, float(n.copy(ho[("t0")]))))
     S = n.copy(ho[("S")])          # ionogram frequency-range
     global freqs
     freqs = n.copy(ho[("freqs")])  # frequency bins
