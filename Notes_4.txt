@@ -1,5 +1,3 @@
-
-
 ****
 So, I have 01-xxc.data saved with new filter in Plot20 folder. I have 01-xxb.data saved as well in respective folders.  I am not sure which filter
 was applied to this data. (I checked and the variables 01-xxb.data has  dr < 1000 filters -- used to save the ionograms in Plot1 folders). Both the data-sets have same variables.
@@ -44,18 +42,16 @@ not be schedule change in T03a as T03a is constructed in the increments of 720 s
 
 How do I fix it ? Find T03 value upto (x5-1)th position. Find T03a closest value. Find that position (say, x5a). Most likely it is the same (x5 - 1) position or maybe not! After this, apply the  correction in T03a from (x5a +1)th position. 
 
-But from x5-1 position to x5 position -- find how many "720s" are covered in T03 ? 
+But from x5-1 position to x5 position -- find how many "720s" are covered in T03 ? : Done ! 
 
 (i) Confirmed --the bug (01-06b.data -- although it has schedule change, T03a doesn't span all the day but it confirms the points). How to fix it ? Find the position (in 120 length) in T03 where the schedule has changed and then apply that in T03a. It will need some thinking there. But, before proceeding, check it few more times !  
 
 
-          [[ Another note -- For all the ...b.data , there is no day for which T03a spans all the day and there is schedule change in T03. It is one or another. Probably, it happens for 01-05c.data, that's why I got stuck with ... c.data. So, I should check -- the new ionograms introduced due to new filters have introduced a schedule change. But, it is little strange as the schedule change only happens to one ionogram and it comes back to its previous schedule. This could -- possibly hint -- the new ionogram might not belong to Virginia and the schedule change is not 'real'. But, I will check again.]] 
-
-
-
+          [[ Another note -- For all the ...b.data , there is no day for which T03a spans all the day and there is schedule change in T03. It is one or another. Probably, it happens for 01-05c.data, that's why I got stuck with ... c.data. So, I should check -- the new ionograms introduced due to new filters have introduced a schedule change. But, it is little strange as the schedule change only happens to one ionogram and it comes back to its previous schedule. This could -- possibly hint -- the new ionogram might not belong to Virginia and the schedule change is not 'real'. But, I will check again. Update :  I checked and that's exactly the case. Once I remove the ionogram, I don't have any instance where T03a spans all day and there is a schedule change in T03 -- for 01-05c.data.]] 
+          
+          
 (A) Fixing double schedule change in a given day where it returns to previous schedule
-   
-   
+      
  x1[27] - x1[26]
  367.008859872818
  x1[28] - x1[27]
@@ -71,21 +67,54 @@ But from x5-1 position to x5 position -- find how many "720s" are covered in T03
  (T03[28] % 720) - (T03[27] % 720)
  -367.0088334083557
  
-
 The above is possible. There is nothing which should negate it and that's why it is happening. But the steps for our goals are :
 
         (1) Detect schedule changes [done]
-        (2) Mark the time gaps (positions) in T03 between the positions they happen [to-be-done]
-        (3) If the schedule change happens between two adjacent points and if the third reverts to the first of those two adjacent points, discard the second where the change happened. 
-        
-                     
+        (2) Mark the time gaps (positions) in T03 between the positions they happen [done]
+        (3) If the schedule change happens between two adjacent points and if the third reverts to the first of those two adjacent points, discard the second where the change happened. [done] 
+                             
  ** 
- 
- I checked the ionogram which creates two schedule changes on 2021-01-05 in ...c.data. The ionogram is : 
- 
+I checked the ionogram which creates two schedule changes on 2021-01-05 in ...c.data. The ionogram is :  
+
                lfm_ionogram-000-1609826926.01.png.
                
                I will try to apply above appraoch for such instances. On this particular day, it has happened once. But, it could happen many times [ i.e. I could detect false ionograms due to the filter I have applied many times (at different times but also along adjacent times)]. So, I shall apply above flow-chart approach to accomodate those possibilities and remove these false ionograms from the data before making the RTI plots. But, I should come back to it to apply my planned cdf approach to create a new robust filter. Thanks.
+                              
+ Update : Mostly fixed. And, works so far. But, there are two caveats in the code : 
+                       (1) Longer gaps (more than 1440 secs) between schedule change not imagined and hence, not handled. Actually, I realize it is not necessary to handle in either case. 
+                       
+                       In first case where T03 'spans' the start and the end of the day (and hence T03a has all 120 time-stamps), even if the schedule change is wide (missing one or more time-stamps in T03), our definition of T03a will handle it. How ? If there is any missing point (say, jth point) during schedule change in T03, the point will not be missing in T03a as it is constructed to have all the points. So, the schedule change will be implemented in jth point in T03a as well -- hence, the schedule change happening a point (time-stamp) earlier in T03a than that in T03 [That's because jth point in T03a will be one step earlier than that of T03 as T03a doesn't have any missing points]. Hence, the issue is handled. 
+                                              
+                       In second case, when T03 (and hence, T03a) doesn't span the whole day, for wide window of schedule change in T03, there is no issue here I think. As we have built T03a from the start of the day to the end of the day to have all possible 120 time-stamps. Even if there was a gap in T03 during schedule change, it will not be reflected in T03a which has already been built equi-spaced for 120 time-stamps. So, the correction for schedule change will be applied in one (or, few ? ) of those time-stamps -thereby 'forgetting' the wide window in T03 schedule change. Thus, the issue becomes irrelevant.  
+                       
+                       But, in both cases, there is no error in building T03a with a position where there wasn't one in T03 during schedule change, that position will have NaN in dB3 when it is reconstructed based on T03a ! So, all fine - I think.
+                                       
+                       (2) For multiple schedule change in a single day, only adjacent schedule changes which change twice are handled. In fact, it changes and it comes back to what it had changed from. That helps to detect and remove the middle change - as it would be regarded spurious detection. That has happened in a single 2021-01-05 and after the removal of the spurious detection, there is no schedule change for that day. But, other combinations of schedule changes in a given day are not addressed and haven't been encountered so far. 
+                       
+                       
+So, the code is mostly debugged. But, issues  which remain are:
+           (1) This is immediate. Why new code and ...c.data introduces 'streaks' in the RTI plot, for ,eg: 2021-01-07.    
+           (2) Explore the "cdf" type filter if that is 'flawless' ! 
+           (3) Explore how to address other possibilities of schedule change : G1B1G1, G1B1B1B1G1, G1B1G2, G1B1B2G2, etc. I think issue(2) shall address it as it would create supposedly a 'flawless' filter !                                 
+
+And steps in that (...rti_2.py) algorithm are :
+
+1. Load Data
+2. Check Schedule Change.
+3. If Schedule change twice in adjacent points, remove the middle one as it must be spurious (Raise error for more involved schedule changes).
+4. If T03a spans the whole day and if there is schedule change, apply the corrections. 
+5. If T03a doesn't span the whole day, build it. And, apply the corrections for schedule change if it happens. 
+6. Fill the missing data with NaN in the intensity (dB3) and the range (range_gates3).
+            Steps for 6 : 
+               ## STEPS :  
+    		#a. Built a regular time-series  - A (T03a)
+    		#b. Get the available time-series  - B (T03) . Note len(A) > len(B)
+    		#c. For every element in A, check if the closest corresponding element in B exists.
+    		#d. If it exists, keep the corresponding 'stripe' of dB3.
+    		#e. If it doesn't exist, insert a NaN stripe in new dB3.
+  
+7. Make plots - two subplots (one rx-tx location and another RTI map) . For RTI map, use for loop for pcolormesh.
+
 
 
 

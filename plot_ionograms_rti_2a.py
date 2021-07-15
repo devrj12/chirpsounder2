@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Stack frequency plot (subplots)
+
 # Load files from each of the folders using pickle and use those to make RTI plots.
 
 import numpy as n
@@ -46,16 +48,16 @@ def save_var():
     #    pickle.dump([T03, dB3, range_gates],f)
 
     path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'b.data'
-    path2 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'c.data'
+    path2 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'd.data'
    
-    img_fname1 = "%s/%s/RTIc-%s.png" % (output_dir1, dirs1, dirs1[0:10])
-    img_fname2 = "%s/RTI-%sc.png" % (output_dir2, dirs1[0:10])
+    img_fname1 = "%s/%s/RTId-%s.png" % (output_dir1, dirs1, dirs1[0:10])
+    img_fname2 = "%s/RTI-%sd.png" % (output_dir2, dirs1[0:10])
     
     #img_fname1 = "%s/%s/lfm_ionogram-%03d-%1.2f.png" % (output_dir1, cd.unix2dirname(t0), cid, t0)
      
    
     with open(path2, 'rb') as f:
-        T03, dB3, range_gates, range_gates2, range_gates3, freqs = pickle.load(f)
+        T03, dB3, dB3a, dB3b, dB3c, range_gates, range_gates2, range_gates3, freqs = pickle.load(f)
         #T03, dB3, range_gates, freqs = pickle.load(f)
 
     # Check if there is change in schedule -- get the modulus, round it and take the differences of all values -- if any change, one or more of the differences will not be zero
@@ -76,6 +78,9 @@ def save_var():
     	if len_ch == 2 and x33[0]==x33[-1]:
     		T03 = n.delete(T03,sch_ch[0]+1)    
     		dB3 = n.delete(dB3,sch_ch[0]+1,1)
+    		dB3a = n.delete(dB3a,sch_ch[0]+1,1)
+    		dB3b = n.delete(dB3b,sch_ch[0]+1,1)
+    		dB3c = n.delete(dB3b,sch_ch[0]+1,1)    		
     		range_gates3 = n.delete(range_gates3,sch_ch[0]+1,1) 
     		ipdb.set_trace()		  	    	        
     		x1 = [x % 720 for x in T03]
@@ -152,6 +157,9 @@ def save_var():
     dB3test = n.full([3999, 120], None)
     dB3test[:] = n.NaN
     dB3new = n.full([3999, 120], None)
+    dB3newa = n.full([3999, 120], None)
+    dB3newb = n.full([3999, 120], None)
+    dB3newc = n.full([3999, 120], None)
     
     range_gatestest = n.full([3999, 120], None)
     range_gatestest[:] = n.NaN
@@ -165,34 +173,64 @@ def save_var():
             print(i)
             ij = n.where(DIFF == n.amin(DIFF))[0][0]
             dB3new[:, i] = dB3[:, ij]
+            dB3newa[:,i] = dB3a[:,ij]
+            dB3newb[:,i] = dB3b[:,ij]
+            dB3newc[:,i] = dB3c[:,ij]
             range_gatesnew[:,i] = range_gates3[:,ij]
             # it (ij) comes out as a tuple which contains an array. So, the first index [0] gets
             # the array out of the tuple. And the second index [0] gets the index out of the array.
         else:
             dB3new[:, i] = dB3test[:, i]
+            dB3newa[:, i] = dB3test[:, i]
+            dB3newb[:, i] = dB3test[:, i]
+            dB3newb[:, i] = dB3test[:, i]
             #range_gatesnew[:,i] = range_gatestest[:,i]
             range_gatesnew[:,i] = range_gates2
             
-    fig = plt.figure(figsize=(1.5*10, 1.5*3))
-    ax0 = fig.add_subplot(121, projection=ccrs.PlateCarree())
-    ax0.coastlines()
-    ax0.gridlines(draw_labels=True)
-    plt.plot(-75.799346, 41.373717, '*r', markersize=12)
-    plt.text(-75.799346, 41.373717, "Scranton", fontsize=12)
-    plt.plot(-76.287491, 36.768208, '*r', markersize=12)
-    plt.text(-76.287491, 36.768208, "Virginia", fontsize=12)
-    ax0.set_xlim(-140, -50)
-    ax0.set_ylim(15, 75)
-    ax0.text(0.5, -0.15, 'Longitude', ha='center', transform=ax0.transAxes)
-    ax0.text(-0.15, 0.5, 'Latitude', ha='center', transform=ax0.transAxes, rotation=90)
-    plt.title("Site Locations ")
-
+    #fig = plt.figure(figsize=(1.5*10, 1.5*3))
+    fig = plt.figure(figsize = (1.5*6,1.5*10))
+    #ax0 = fig.add_subplot(511, projection=ccrs.PlateCarree())
+    #ax0.coastlines()
+    #ax0.gridlines(draw_labels=True)
+    #plt.plot(-75.799346, 41.373717, '*r', markersize=12)
+    #plt.text(-75.799346, 41.373717, "Scranton", fontsize=12)
+    #plt.plot(-76.287491, 36.768208, '*r', markersize=12)
+    #plt.text(-76.287491, 36.768208, "Virginia", fontsize=12)
+    #ax0.set_xlim(-140, -50)
+    #ax0.set_ylim(15, 75)
+    #ax0.text(0.5, -0.15, 'Longitude', ha='center', transform=ax0.transAxes)
+    #ax0.text(-0.15, 0.5, 'Latitude', ha='center', transform=ax0.transAxes, rotation=90)
+    #plt.title("Site Locations ")
+    
+    fig.suptitle("RTI plots : %s UTC" % datetime.datetime.utcfromtimestamp(T03[1]).strftime('%Y-%m-%d'))
     new_times = [datetime.datetime.utcfromtimestamp(x) for x in T03a]
     new_times = n.array(new_times)
     new_times1 = [datetime.datetime.fromtimestamp(x) for x in T03a]  # local-time
     new_times1 = n.array(new_times1)
 
-    ax1    = fig.add_subplot(122)
+    ax1    = fig.add_subplot(4,1,1)
+    dB3newa = dB3newa.astype(n.float)
+    
+    for ja in range(0,118):
+                plt.pcolormesh(new_times[ja:ja+2],n.column_stack((range_gatesnew[:,ja],range_gatesnew[:,ja])),dB3newa[:-1,ja:ja+1],vmin=-3,vmax=30.0,cmap="inferno")
+                #plt.pcolormesh(new_times[ja:ja+2], range_gatesnew[:,ja:ja+2], dB3new[:,ja:ja+2],vmin=-3, vmax=30.0, cmap="inferno")
+
+    #plt.pcolormesh(new_times, range_gatesnew, dB3new, vmin=-3, vmax=30.0, cmap="inferno")
+    cb = plt.colorbar()
+    cb.set_label("SNR (dB)")
+    #plt.title("RTI plot for %1.2f MHz" % (freqs[60]/1e6))
+    #plt.xlabel("Time (UTC)")
+    plt.ylabel("One-way range offset (km)")
+    # plt.ylim([dr-conf.max_range_extent/1e3,dr+conf.max_range_extent/1e3])
+    plt.ylim([0, 4000])
+    # plt.xlim([0, 15])    
+    plt.xlim(new_times[0], new_times[-1])
+    plt.tight_layout()
+    #plt.savefig(img_fname1, bbox_inches='tight')
+    #plt.savefig(img_fname2, bbox_inches='tight')
+    
+    
+    ax2    = fig.add_subplot(4,1,2)
     dB3new = dB3new.astype(n.float)
     
     #mpl1 = mpl.dates.date2num(new_times)
@@ -203,7 +241,47 @@ def save_var():
     #plt.pcolormesh(new_times, range_gatesnew, dB3new, vmin=-3, vmax=30.0, cmap="inferno")
     cb = plt.colorbar()
     cb.set_label("SNR (dB)")
-    plt.title("RTI plot for %1.2f MHz \n%s (UTC)" % (freqs[80]/1e6,  datetime.datetime.utcfromtimestamp(T03[1]).strftime('%Y-%m-%d')))
+    plt.title("RTI plot for %1.2f MHz" % (freqs[80]/1e6))
+    #plt.xlabel("Time (UTC)")
+    plt.ylabel("One-way range offset (km)")
+    # plt.ylim([dr-conf.max_range_extent/1e3,dr+conf.max_range_extent/1e3])
+    plt.ylim([0, 4000])
+    # plt.xlim([0, 15])    
+    plt.xlim(new_times[0], new_times[-1])
+    plt.tight_layout()
+    
+    ax3    = fig.add_subplot(4,1,3)
+    dB3newb = dB3newb.astype(n.float)
+    
+    #mpl1 = mpl.dates.date2num(new_times)
+    for ja in range(0,118):
+                plt.pcolormesh(new_times[ja:ja+2],n.column_stack((range_gatesnew[:,ja],range_gatesnew[:,ja])),dB3newb[:-1,ja:ja+1],vmin=-3,vmax=30.0,cmap="inferno")
+                #plt.pcolormesh(new_times[ja:ja+2], range_gatesnew[:,ja:ja+2], dB3new[:,ja:ja+2],vmin=-3, vmax=30.0, cmap="inferno")
+
+    #plt.pcolormesh(new_times, range_gatesnew, dB3new, vmin=-3, vmax=30.0, cmap="inferno")
+    cb = plt.colorbar()
+    cb.set_label("SNR (dB)")
+    plt.title("RTI plot for %1.2f MHz" % (freqs[100]/1e6))
+    #plt.xlabel("Time (UTC)")
+    plt.ylabel("One-way range offset (km)")
+    # plt.ylim([dr-conf.max_range_extent/1e3,dr+conf.max_range_extent/1e3])
+    plt.ylim([0, 4000])
+    # plt.xlim([0, 15])    
+    plt.xlim(new_times[0], new_times[-1])
+    plt.tight_layout()
+    
+    ax4    = fig.add_subplot(4,1,4)
+    dB3newc = dB3newc.astype(n.float)
+    
+    #mpl1 = mpl.dates.date2num(new_times)
+    for ja in range(0,118):
+                plt.pcolormesh(new_times[ja:ja+2],n.column_stack((range_gatesnew[:,ja],range_gatesnew[:,ja])),dB3newc[:-1,ja:ja+1],vmin=-3,vmax=30.0,cmap="inferno")
+                #plt.pcolormesh(new_times[ja:ja+2], range_gatesnew[:,ja:ja+2], dB3new[:,ja:ja+2],vmin=-3, vmax=30.0, cmap="inferno")
+
+    #plt.pcolormesh(new_times, range_gatesnew, dB3new, vmin=-3, vmax=30.0, cmap="inferno")
+    cb = plt.colorbar()
+    cb.set_label("SNR (dB)")
+    plt.title("RTI plot for %1.2f MHz" % (freqs[120]/1e6))
     plt.xlabel("Time (UTC)")
     plt.ylabel("One-way range offset (km)")
     # plt.ylim([dr-conf.max_range_extent/1e3,dr+conf.max_range_extent/1e3])
@@ -211,8 +289,11 @@ def save_var():
     # plt.xlim([0, 15])    
     plt.xlim(new_times[0], new_times[-1])
     plt.tight_layout()
-    #plt.savefig(img_fname1, bbox_inches='tight')
-    #plt.savefig(img_fname2, bbox_inches='tight')
+    
+    #fig.tight_layout()
+    
+    ipdb.set_trace()
+    
     plt.show() 
     #plt.savefig(img_fname1)
     plt.close()
