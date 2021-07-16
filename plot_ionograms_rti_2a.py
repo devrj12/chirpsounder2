@@ -57,10 +57,13 @@ def save_var():
      
    
     with open(path2, 'rb') as f:
-        T03, dB3, dB3a, dB3b, dB3c, range_gates, range_gates2, range_gates3, freqs = pickle.load(f)
+        #T03, dB3, dB3a, dB3b, dB3c, range_gates, range_gates2, range_gates3, freqs = pickle.load(f)
+        DataDict = pickle.load(f)
+
         #T03, dB3, range_gates, freqs = pickle.load(f)
 
     # Check if there is change in schedule -- get the modulus, round it and take the differences of all values -- if any change, one or more of the differences will not be zero
+    T03 = DataDict['Time']
     x1 = [x % 720 for x in T03]
     x3 = [round(y, 2) for y in x1]
     x4 = n.diff([x3])[0]
@@ -70,17 +73,26 @@ def save_var():
     # I am using x33 to get an array of three elements. 
     # Actually it is applicable for consecutive schedule changes (for such schedule change - sch_ch will have two consecutive elements and sch_ch[-1] + 2 will
     # help me to get three elements for x33. There should be a check if there are multiple such consecutive schedule changes.  
-        
+
+    dB3a = DataDict['DB1']
+    dB3b = DataDict['DB2']
+    dB3c = DataDict['DB3']
+    dB3d = DataDict['DB4']    
+    range_gates3 = DataDict['range_gates3']
+    range_gates2 = DataDict['range_gates2']
+    freqlist = DataDict['freqlist']
+    freqs  = DataDict['freqs']
+
     # check if schedule change occurs more than once in a given day and use that to remove spurious 'ionograms' 
     # I am beginning with a simple case : only twice and consecutive which may not be the case as spurious detections can happen anywhere in any order
     if len_ch > 1: 
     	x33 = x3[sch_ch[0]:sch_ch[-1]+2]
     	if len_ch == 2 and x33[0]==x33[-1]:
     		T03 = n.delete(T03,sch_ch[0]+1)    
-    		dB3 = n.delete(dB3,sch_ch[0]+1,1)
     		dB3a = n.delete(dB3a,sch_ch[0]+1,1)
     		dB3b = n.delete(dB3b,sch_ch[0]+1,1)
-    		dB3c = n.delete(dB3b,sch_ch[0]+1,1)    		
+    		dB3c = n.delete(dB3c,sch_ch[0]+1,1)
+    		dB3d = n.delete(dB3d,sch_ch[0]+1,1)    		
     		range_gates3 = n.delete(range_gates3,sch_ch[0]+1,1) 
     		ipdb.set_trace()		  	    	        
     		x1 = [x % 720 for x in T03]
@@ -156,10 +168,10 @@ def save_var():
        
     dB3test = n.full([3999, 120], None)
     dB3test[:] = n.NaN
-    dB3new = n.full([3999, 120], None)
     dB3newa = n.full([3999, 120], None)
     dB3newb = n.full([3999, 120], None)
     dB3newc = n.full([3999, 120], None)
+    dB3newd = n.full([3999, 120], None)
     
     range_gatestest = n.full([3999, 120], None)
     range_gatestest[:] = n.NaN
@@ -172,20 +184,22 @@ def save_var():
         if MIN < 2:
             print(i)
             ij = n.where(DIFF == n.amin(DIFF))[0][0]
-            dB3new[:, i] = dB3[:, ij]
-            dB3newa[:,i] = dB3a[:,ij]
+            dB3newa[:, i] = dB3a[:, ij]
             dB3newb[:,i] = dB3b[:,ij]
             dB3newc[:,i] = dB3c[:,ij]
+            dB3newd[:,i] = dB3d[:,ij]
             range_gatesnew[:,i] = range_gates3[:,ij]
             # it (ij) comes out as a tuple which contains an array. So, the first index [0] gets
             # the array out of the tuple. And the second index [0] gets the index out of the array.
         else:
-            dB3new[:, i] = dB3test[:, i]
             dB3newa[:, i] = dB3test[:, i]
             dB3newb[:, i] = dB3test[:, i]
-            dB3newb[:, i] = dB3test[:, i]
+            dB3newc[:, i] = dB3test[:, i]
+            dB3newd[:, i] = dB3test[:, i]
             #range_gatesnew[:,i] = range_gatestest[:,i]
             range_gatesnew[:,i] = range_gates2
+    
+    dB3new = [dB3newa, dB3newb, dB3newc, dB3newd]         
             
     #fig = plt.figure(figsize=(1.5*10, 1.5*3))
     fig = plt.figure(figsize = (1.5*6,1.5*10))
@@ -208,26 +222,26 @@ def save_var():
     new_times1 = [datetime.datetime.fromtimestamp(x) for x in T03a]  # local-time
     new_times1 = n.array(new_times1)
 
-    ax1    = fig.add_subplot(4,1,1)
-    dB3newa = dB3newa.astype(n.float)
+    for j in len(dB3new):
+    	ax1    = fig.add_subplot(4,1,j)
+    	dB3newa = dB3newa.astype(n.float)
     
-    for ja in range(0,118):
-                plt.pcolormesh(new_times[ja:ja+2],n.column_stack((range_gatesnew[:,ja],range_gatesnew[:,ja])),dB3newa[:-1,ja:ja+1],vmin=-3,vmax=30.0,cmap="inferno")
-                #plt.pcolormesh(new_times[ja:ja+2], range_gatesnew[:,ja:ja+2], dB3new[:,ja:ja+2],vmin=-3, vmax=30.0, cmap="inferno")
+    	for ja in range(0,118):
+        	plt.pcolormesh(new_times[ja:ja+2],n.column_stack((range_gatesnew[:,ja],range_gatesnew[:,ja])),dB3newa[:-1,ja:ja+1],vmin=-3,vmax=30.0,cmap="inferno")
+               #plt.pcolormesh(new_times[ja:ja+2], range_gatesnew[:,ja:ja+2], dB3new[:,ja:ja+2],vmin=-3, vmax=30.0, cmap="inferno")
 
-    #plt.pcolormesh(new_times, range_gatesnew, dB3new, vmin=-3, vmax=30.0, cmap="inferno")
-    cb = plt.colorbar()
-    cb.set_label("SNR (dB)")
-    #plt.title("RTI plot for %1.2f MHz" % (freqs[60]/1e6))
-    #plt.xlabel("Time (UTC)")
-    plt.ylabel("One-way range offset (km)")
-    # plt.ylim([dr-conf.max_range_extent/1e3,dr+conf.max_range_extent/1e3])
-    plt.ylim([0, 4000])
-    # plt.xlim([0, 15])    
-    plt.xlim(new_times[0], new_times[-1])
-    plt.tight_layout()
-    #plt.savefig(img_fname1, bbox_inches='tight')
-    #plt.savefig(img_fname2, bbox_inches='tight')
+    		cb = plt.colorbar()
+    		cb.set_label("SNR (dB)")
+    		#plt.title("RTI plot for %1.2f MHz" % (freqs[60]/1e6))
+    		#plt.xlabel("Time (UTC)")
+    		plt.ylabel("One-way range offset (km)")
+    		# plt.ylim([dr-conf.max_range_extent/1e3,dr+conf.max_range_extent/1e3])
+    		plt.ylim([0, 4000])
+    		# plt.xlim([0, 15])    
+    		plt.xlim(new_times[0], new_times[-1])
+    		plt.tight_layout()
+    		#plt.savefig(img_fname1, bbox_inches='tight')
+    		#plt.savefig(img_fname2, bbox_inches='tight')
     
     
     ax2    = fig.add_subplot(4,1,2)
