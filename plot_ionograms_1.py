@@ -88,8 +88,7 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
             # ctime is in Local-Time (I think !)
 
             def onclick(event):
-                print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
-                    'double' if event.dblclick else 'single', event.button, event.x, event.y, event.xdata, event.ydata))
+                print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % ('double' if event.dblclick else 'single', event.button, event.x, event.y, event.xdata, event.ydata))
                 Coord.append([t0, event.xdata, event.ydata, ctime, ctime_str])
 
             # single click: button=1, x=507, y=202, xdata=7.247788, ydata=728.640032

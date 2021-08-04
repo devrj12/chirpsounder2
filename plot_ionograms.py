@@ -21,16 +21,14 @@ def plot_ionogram(conf, f, normalize_by_frequency=True):
         return
     cid = int(n.copy(ho[("id")]))  # ionosonde id
 
-    img_fname = "%s/%s/lfm_ionogram-%03d-%1.2f.png" % (
-        conf.output_dir, cd.unix2dirname(t0), cid, t0)
+    img_fname = "%s/%s/lfm_ionogram-%03d-%1.2f.png" % (conf.output_dir, cd.unix2dirname(t0), cid, t0)
     if os.path.exists(img_fname):
         #print("Ionogram plot %s already exists. Skipping"%(img_fname))
         ho.close()
         return
         
      
-    print("Plotting %s rate %1.2f (kHz/s) t0 %1.5f (unix)" %
-          (f, float(n.copy(ho[("rate")]))/1e3, float(n.copy(ho[("t0")]))))
+    print("Plotting %s rate %1.2f (kHz/s) t0 %1.5f (unix)" %(f, float(n.copy(ho[("rate")]))/1e3, float(n.copy(ho[("t0")]))))
     S = n.copy(ho[("S")])          # ionogram frequency-range
     freqs = n.copy(ho[("freqs")])  # frequency bins
     ranges = n.copy(ho[("ranges")])  # range gates
