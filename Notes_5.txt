@@ -1,0 +1,93 @@
+
+##
+For cases with all elements going through schedule-change, SS6 will not have the first element of that array as it begins from 1 (not 0 -- which is the first element) and SS6 will
+also not have the last element of that array as it has the last element of sch_ch (which is the difference of the array -- the indices of the difference of an array will never have
+the last index of the array and hence it will be spared)! It will need little exercise to understand this. But, the point is the array will be left with only the first and the second 
+elements if all elements are changing. It happens on 2021-03-25 day's data. So, in that sense, it hasn't been addressed completely as it spares the first and the last element of the 
+array but perhaps, we are fine.
+
+For 2021-03-25 : 
+CT = 2
+CT1 = 118
+T03_old = 21
+T03_new = 2
+
+##
+Day 2021-03-28 is interesting as schedule change interestingly for those 'type B' ionograms:
+
+[213.0, 213.0, 213.0, 445.0, 267.0, 445.0, 267.0, 445.0, 267.0, 445.0, 267.0, 445.0, 267.01, 445.0, 267.0, 445.0, 267.0, 445.0, 646.0, 286.0, 586.0, 466.0, 346.0, 
+ 226.0, 526.0, 106.0, 406.0, 706.0, 286.0, 100.0]
+
+Only first three are good ionograms. My algorithm keeps the first four and takes away all others. So, it is doing a fairly good job.
+
+CT = 4
+CT1 = 116
+T03_old = 30
+T03_new = 4
+
+
+##
+
+This is interesting for 2021-05-09. So, it may be worth checking in the algorithm :
+
+CT = 1
+CT1 = 119
+T03_old = 2
+T03_new = 2
+
+##
+This is interesting for 2021-04-07. Why only 54 out of 61 ?
+
+CT = 54
+CT1 = 66
+T03_old = 61
+T03_new = 61
+
+##
+This is 05:02. Out of 16 selected ionograms, most of them are "type B" ionograms. Check if they had same schedule ? Most likely they had. Else, why would they survive ?
+These would survive even if I make my filter (500 km < r0 < 1000 km) which is now (400 km < r0 < 1000 km). 
+CT = 16
+CT1 = 104
+T03_old = 20
+T03_new = 16
+
+## This is 05:03. All type B ionograms. 2 out of 10 survive. But, those 2 type B as well ? So, type B is a headache ? 
+CT = 2
+CT1 = 118
+T03_old = 10
+T03_new = 2
+
+## Same for 05:07
+
+CT = 2
+CT1 = 118
+T03_old = 5
+T03_new = 2
+
+## Same for 05:09
+
+CT = 1
+CT1 = 119
+T03_old = 2
+T03_new = 2
+
+## Many beautiful days. 05:30 similar :
+
+CT = 55
+CT1 = 65
+T03_old = 55
+T03_new = 55
+
+
+## 05 -31. The third ionogram selected should not have been. Should check in the first algorithm why it is selected in the first place. 
+
+CT = 22
+CT1 = 98
+T03_old = 23
+T03_new = 22
+
+## Ask Nathaniel how can I write on the text file for all days ! 
+
+
+
+

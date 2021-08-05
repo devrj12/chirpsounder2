@@ -56,7 +56,7 @@ def save_var(DataDict):
     img_fname2 = "%s/RTI-%sj.png" % (output_dir2, dirs1[0:10])
 
     with open(path2, 'rb') as f:
-        DataDict = pickle.load(f)
+            DataDict = pickle.load(f)
 
     # Check if there is change in schedule : get the modulus, round it and take the differences of all values : if any change, one or more of the differences will not be zero
     T03 = DataDict['Time']
@@ -93,12 +93,15 @@ def save_var(DataDict):
     SS6 = []
     for j in range(0,len(SS5)):  
             SS6.append(SS[SS5[j]][1:])
+    # For cases with all elements going through schedule-change, SS6 will not have the first element of that array as it begins from 1 (not 0 -- which is the first element) and SS6 will
+    # also not have the last element of that array as it has the last element of sch_ch (which is difference of the array) ! It will need little exercise to understand this. But, the 
+    # point is the array will be left with only the first and the second elements if all elements are changing. It happens on 2021-03-25 day's data. 
     
     if len(SS6) < 2:
         SS7 = n.sort(n.concatenate((SS4,SS6), axis=None).astype(int))
     elif len(SS6) > 1:        
         SS7 = n.sort(n.concatenate((SS4,n.concatenate(SS6,axis=None)), axis=None).astype(int))
-            
+    
     range_gates3 = DataDict['range_gates3']
     range_gates2 = DataDict['range_gates2']
     freqlist = DataDict['freqlist']
@@ -121,42 +124,34 @@ def save_var(DataDict):
     x4 = n.diff([x3])[0]
         
     dtz = datetime.datetime.utcfromtimestamp(T03[-1])
-    dtz2 = dtz.replace(minute=59, second=59)
+    dtz2 = dtz.replace(hour=23,minute=59, second=59)
     T03z = dtz2.replace(tzinfo=timezone.utc).timestamp()
 
     T03a = n.arange(T03[0], T03z, 720)
     T03b = T03a
 
     if len(n.where(abs(x4) > 1)[0]) > 0:
-        x5 = n.array([n.where(abs(x4) > 1)[0][0]+1])
-        
+        x5 = n.array([n.where(abs(x4) > 1)])[0][0]+1
+
     sch_ch1 = n.where(abs(x4)>1)[0]
     SM = n.split(sch_ch1,n.argwhere(n.diff(sch_ch1)>1)[:,0]+1)
     
+
     # If T03a doesn't span the whole day, build it. 
     if len(T03a) < 120:
         dtest = int(datetime.datetime.utcfromtimestamp(T03[0]).strftime("%d"))
-        jj = 0
-        while True:
-            # subtract 720 until it gets to beginning of the day and in next while loop, add 720 until it gets to the end of the day
-            print('jj=%d' %(jj))
-            if abs((int(datetime.datetime.utcfromtimestamp(T03[0] - 720*jj).strftime("%d")) - dtest)) > 0:
-                T03b = n.insert(T03b, 0, T03[0] - 720*(jj-1))
-                print('jj= %1.2f' % (jj))
-                break
-            jj += 1
-
         jj1 = 0
         while True:
+            # subtract 720 until it gets to beginning of the day and in next while loop, add 720 until it gets to the end of the day
             print('jj1=%d' %(jj1))
-            if abs((int(datetime.datetime.utcfromtimestamp(T03[-1] + 720*jj1).strftime("%d")) - dtest)) > 0:
-                T03b = n.append(T03b, T03[-1] + 720*(jj1-1))
-                print('jj1 = %1.2f' % (jj1))
+            if abs((int(datetime.datetime.utcfromtimestamp(T03[0] - 720*jj1).strftime("%d")) - dtest)) > 0:
+                T03b = n.insert(T03b, 0, T03[0] - 720*(jj1-1))
+                print('jj1= %1.2f' % (jj1))
                 break
             jj1 += 1
 
         T03a = n.arange(T03b[0], T03z, 720)
-    
+        
     # And, apply the corrections for schedule change if it happens.     
     if (len(n.where(abs(x4) > 1)[0]) > 0):    
         # The change has happened at x5 and hence, I am looking for equivalent element in T03a corresponding to (x5-1) [which is SM] position of T03. That's because
@@ -172,16 +167,24 @@ def save_var(DataDict):
                 T03a1 = T03a[0:(nn1+1)]
                 TT3.append(T03a1)
             if j > 0:  
-            # For more than one schedule change. We begin where we had left [NNJ[j-1] + 1]th position and go upto new nn1 and add the change to all the elements of this batch.
+            # For more than one schedule change. We begin where we had left. That is one element ahead of the last element of 'previous TT3' and add the change to all elements 
+            # for this batch. The length of the batch will be determined by len(T03aa1) : which is [NNJ[j-1] + 1]th position  upto new nn1 
             # And repeat the process. 
-                T03a1 = T03a[NNJ[j-1]+1:(nn1+1)] + x4[x5[j-1]-1]
-                TT3.append(T03a1)        
-          
-        # Apply the last change here : Start it from (nn1 +1)th position as nn1 position is already covered. And, add the "change = x4[x5-1]" at (nn1 + 1)th position
-        #ipdb.set_trace()
-        T03a2 = n.arange(T03a[nn1+1] + x4[x5[-1]-1], T03z, 720)
-        T03a = n.concatenate((TT3[0], T03a2))
-             
+                T03aa1 = T03a[NNJ[j-1]+1:(nn1+1)] + x4[x5[j-1]-1]
+                Element = TT3[j-1][-1]+720 + x4[x5[j-1]-1]
+                T03a1 = n.arange(Element, Element + 720*(len(T03aa1)-1)+20, 720)
+                TT3.append(T03a1)
+
+        # Apply the last change here : Start it from the (final+1 = TT3a[-1] + 720) position of TT3 nn1 position. And, add the "change = x4[x5-1]" at (nn1 + 1)th position
+        TT3a = n.hstack(TT3)
+        #T03a2 = n.arange(T03a[nn1+1] + x4[x5[-1]-1], T03z, 720)
+        T03a2 = n.arange(TT3a[-1] + 720 + x4[x5[-1]-1], T03z, 720)
+        T03a = n.concatenate((TT3a, T03a2))
+        # If for some reasons (it can happen as the 'space' might have shrunk due to schedule change to accomodate more than 120 elements between the start and the end of the day), 
+        # the length of T03a exceeds 120 , keep only upto 120. 
+        if len(T03a) > 120:
+            T03a = T03a[0:120]
+
    # Construct full dB3 and ranges_gatesnew with NaNs
     dB3test = n.full([3999, 120], None)
     dB3test[:] = n.NaN
@@ -219,8 +222,9 @@ def save_var(DataDict):
 
             range_gatesnew[:, i] = range_gates2
     
-    FileName = os.path.join(path3,"Var.txt")
+    FileName = os.path.join(output_dir21,"Var.txt")
     file = open(FileName, "w")
+    file.write("%s = %s\n" %("Date", str(cd.unix2dirname(T03[0]))))
     file.write("%s = %s\n" %("CT", str(CT)))
     file.write("%s = %s\n" %("CT1", str(CT1)))
     file.write("%s = %s\n" %("T03_old", str(T03old)))
@@ -235,7 +239,7 @@ def save_var(DataDict):
     new_times = n.array(new_times)
     new_times1 = [datetime.datetime.fromtimestamp(x) for x in T03a]  # local-time
     new_times1 = n.array(new_times1)
-
+    
     for j, k in enumerate(reversed([j for j in DataDict['DBall'].keys()])):
         ax1 = fig.add_subplot(6, 1, j+1)
         for ja in range(0, 118):
@@ -253,7 +257,7 @@ def save_var(DataDict):
         plt.tight_layout(pad=3.0)
         #plt.savefig(img_fname1, bbox_inches='tight')
         #plt.savefig(img_fname2, bbox_inches='tight')
-
+    
     #cb = plt.colorbar()
     plt.xlabel("Time (UTC)",weight='bold')
     plt.savefig(img_fname1, bbox_inches='tight')
@@ -284,7 +288,7 @@ if __name__ == "__main__":
             dtt1 = datetime.datetime.strptime('2021-05-08','%Y-%m-%d').date()
             dtt2 = datetime.datetime.strptime(dirs1[0:10],'%Y-%m-%d').date()
 
-            #if dirs1[0:10] == '2021-05-31':
+            #if dirs1[0:10] == '2021-01-10':
             #dir1 = output_dir1 + '/' + dirs[j]
             #for x in os.listdir(dir1):
             #    if x.endswith("h.data"):
@@ -301,6 +305,6 @@ if __name__ == "__main__":
 
                 # fl = glob.glob("%s/*/lfm*.h5" % (conf.output_dir))
                 # fl = glob.glob("%s/lfm*.h5" % (conf.output_dir))
-                
-                    if len(fl) > 1:
+                                     
+                    if (len(fl) > 1):
                         save_var(DataDict) 
