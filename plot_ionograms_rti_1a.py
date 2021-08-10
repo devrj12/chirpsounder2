@@ -162,7 +162,7 @@ def plot_ionogram(conf, f, Datadict, normalize_by_frequency=True):
         DataDict['Time'] = T03
         DataDict['range_gates3'] = range_gates3
         DataDict['ch1'] = ch1
-        #ipdb.set_trace()
+        ipdb.set_trace()
         print('ch1_inside=%d' %(ch1))
 
 def save_var(DataDict):
@@ -173,7 +173,7 @@ def save_var(DataDict):
     #path1 = output_dir1 + '/' + cd.unix2dirname(T03[0])[5:10] + '.data'
 
     print(path1)
-    #ipdb.set_trace()
+    ipdb.set_trace()
     with open(path1, 'wb') as f:
         pickle.dump(DataDict, f)
 
@@ -203,8 +203,8 @@ if __name__ == "__main__":
             dtt2 = datetime.datetime.strptime(dirs1[0:10],'%Y-%m-%d').date()
             #ipdb.set_trace()
             #if dtt2 > dtt1 :
-            #if dirs1[0:10] == '2021-03-08':
-            if dirs1[0:4] == '2021':
+            if dirs1[0:10] == '2021-05-02':
+            #if dirs1[0:4] == '2021':
                 path = os.path.join(rootdir, dirs1)
                 print(dirs1)
                 os.chdir(path)

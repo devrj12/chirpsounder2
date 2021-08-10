@@ -88,6 +88,7 @@ def save_var(DataDict):
           SS3.append(SS[SS2[j]][1])
           
     SS4 = n.array(SS3)
+    x3old = x3
     
     SS5  = [idx for idx, x in enumerate(SS1) if x  > 2]
     SS6 = []
@@ -111,7 +112,6 @@ def save_var(DataDict):
     for k in [j for j in DataDict['DBall'].keys()]:
         DataDict['DBall'][k] = n.delete(DataDict['DBall'][k],SS7,1)
     
-    path4 = os.path.join(output_dir21, cd.unix2dirname(T03[0]))  + 'b'    
     for jj,ii in enumerate(T03):
         img_fname2b  = glob.glob("%s/lfm*-%1.2f.png"%(path,T03[jj]))
         if img_fname2b[0] not in path4:
@@ -222,7 +222,8 @@ def save_var(DataDict):
 
             range_gatesnew[:, i] = range_gates2
     
-    FileName = os.path.join(output_dir21,"Var.txt")
+    #FileName = os.path.join(output_dir21,"Var.txt")
+    FileName = os.path.join(path3,"Var.txt")
     file = open(FileName, "w")
     file.write("%s = %s\n" %("Date", str(cd.unix2dirname(T03[0]))))
     file.write("%s = %s\n" %("CT", str(CT)))

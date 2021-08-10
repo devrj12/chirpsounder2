@@ -51,6 +51,8 @@ CT1 = 104
 T03_old = 20
 T03_new = 16
 
+And few of these have negative ranges for "type A" ionograms.
+
 ## This is 05:03. All type B ionograms. 2 out of 10 survive. But, those 2 type B as well ? So, type B is a headache ? 
 CT = 2
 CT1 = 118
@@ -86,8 +88,22 @@ CT1 = 98
 T03_old = 23
 T03_new = 22
 
+Ans :  I checked it and it actually fits the filter. There is a single vertical line which 'passes' the filter and there are no traces in rest of the ionogram.
+
+
+
 ## Ask Nathaniel how can I write on the text file for all days ! 
 
+## Next steps:
+   (1.) Make above checks [[Apply any lessons]]
+   (2.) Resave the data and Remake the plots
+   (3.) Rewrite the algorithm to delete all "schedules" which don't exist 5 times continuously and remake the plots -- perhaps : this is the way to go ! 
+   (4.) Then apply the code aesthetics and the github suggestions by Nathaniel
 
 
 
+## Interesting situation on 03-28 for '5 unique values cut off' criterion. It turns out this survived as I didn't apply 5 continous values ! If I had 
+ 5 continuous values criterion, this would not survive. 
+ 
+ But, 05-02 is indeed a headache ! As even if I apply 5 continuous values cutoff, it will get me the same result. Meaning quite many "type B" ionograms which 
+ I was hoping to get away with.

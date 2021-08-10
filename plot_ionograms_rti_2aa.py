@@ -37,7 +37,7 @@ rootdir = '/media/dev/Seagate Backup Plus Drive/lfm_files'
 output_dir1 = "/home/dev/Downloads/chirp_juha2b/Plots20"
 output_dir2 = "/home/dev/Downloads/chirp_juha2b/Plots20/AllRTI"
 
-output_dir21 = "/home/dev/Downloads/chirp_juha2b/Plots21"
+output_dir21 = "/home/dev/Downloads/chirp_juha2b/Plots22"
 dirs = sorted(os.listdir(output_dir1))
 
 
@@ -51,25 +51,28 @@ def save_var(DataDict):
     print('check')
     
     path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'b.data'
-    path2 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'f.data'
+    path2 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'j.data'
 
-    img_fname1 = "%s/%s/RTIi-%s.png" % (output_dir1, dirs1, dirs1[0:10])
-    img_fname2 = "%s/RTI-%si.png" % (output_dir2, dirs1[0:10])
+    img_fname1 = "%s/%s/RTIj1-%s.png" % (output_dir1, dirs1, dirs1[0:10])
+    img_fname2 = "%s/RTI-%sj1.png" % (output_dir2, dirs1[0:10])
 
   
     with open(path2, 'rb') as f:
         #T03, dB3, dB3a, dB3b, dB3c, range_gates, range_gates2, range_gates3, freqs = pickle.load(f)
         DataDict = pickle.load(f)
-
-        #T03, dB3, range_gates, freqs = pickle.load(f)
-
+    
     # Check if there is change in schedule -- get the modulus, round it and take the differences of all values -- if any change, one or more of the differences will not be zero
 
     T03 = DataDict['Time']
     print(len(T03))
+    T03old = len(T03)
+    T03old1 = T03
     path3 = os.path.join(output_dir21, cd.unix2dirname(T03[0]))  + 'a'
+    path4 = os.path.join(output_dir21, cd.unix2dirname(T03[0]))  + 'b'
     if not os.path.exists(path3):
             os.makedirs(path3)
+    if not os.path.exists(path4):
+            os.makedirs(path4)
     
     for jj,ii in enumerate(T03):
             img_fname2a  = glob.glob("%s/lfm*-%1.2f.png"%(path,T03[jj]))
@@ -77,123 +80,110 @@ def save_var(DataDict):
                 shutil.copy(img_fname2a[0], path3)   
     
     x1 = [x % 720 for x in T03]
-    x3 = [round(y, 2) for y in x1]
-    x4 = n.diff([x3])[0]
-    sch_ch = n.where(abs(x4) > 1)[0]
-    len_ch = len(sch_ch)
-    SS = n.split(sch_ch,n.argwhere(n.diff(sch_ch) > 1)[:,0]+1)
-    SS1 = [len(j) for j in SS]
-    SS2  = [idx for idx, x in enumerate(SS1) if x  == 2]
-    SS3 = []
-    for j in range(0,len(SS2)):
-          SS3.append(SS[SS2[j]][1])
-          
-    SS4 = n.array(SS3)
+    x3 = n.array([int(round(x)) for x in x1])
+    ipdb.set_trace()
+    x3old = x3
+    (x3u,C) = n.unique(x3,return_counts = True)
+    x3c = x3u[C > 5]
     
-    SS5  = [idx for idx, x in enumerate(SS1) if x  > 2]
-    SS6 = []
-    for j in range(0,len(SS5)):  
-            SS6.append(SS[SS5[j]][1:])
+    x3n = []
+    for i, j in enumerate(x3c):
+            x3n.append(n.where(x3 == x3c[i]))    
     
+    if len(x3n) == 0: 
+        print('No useful data')     
+        sys.exit()
 
-    if len(SS6) < 2:
-        SS7 = n.sort(n.concatenate((SS4,SS6), axis=None).astype(int))
-    elif len(SS6) > 1:        
-        SS7 = n.sort(n.concatenate((SS4,n.concatenate(SS6,axis=None)), axis=None).astype(int))
-    
-    ipdb.set_trace()     
+    x3n = n.concatenate(x3n,axis=None).astype(int)    
+    x3in = n.array(range(0,len(x3)))
+    x3diff = n.setdiff1d(x3in, x3n)
         
-
-    # I am using x33 to get an array of three elements.
-    # Actually it is applicable for consecutive schedule changes (for such schedule change - sch_ch will have two consecutive elements and sch_ch[-1] + 2 will
-    # help me to get three elements for x33. There should be a check if there are multiple such consecutive schedule changes.
-
     range_gates3 = DataDict['range_gates3']
     range_gates2 = DataDict['range_gates2']
     freqlist = DataDict['freqlist']
     freqs = DataDict['freqs']
     
-    T03 = n.delete(T03, SS7)
+    T03 = n.delete(T03, x3diff)
+
+    for jj,ii in enumerate(T03):
+        img_fname2b  = glob.glob("%s/lfm*-%1.2f.png"%(path,T03[jj]))
+        if img_fname2b[0] not in path4:
+            shutil.copy(img_fname2b[0], path4)  
+    
     for k in [j for j in DataDict['DBall'].keys()]:
-        DataDict['DBall'][k] = n.delete(DataDict['DBall'][k],SS7,1)
+        DataDict['DBall'][k]  = n.delete(DataDict['DBall'][k],x3diff,1)
+        #DataDict['DBall'][k]  = DataDict['DBall'][k][:,x3n]
         
     print(len(T03))
-    range_gates3 = n.delete(range_gates3,SS7,1)
+    range_gates3 = n.delete(range_gates3,x3diff,1)
+    #range_gates3 = range_gates3[:,x3n]
     x1 = [x % 720 for x in T03]
     x3 = [round(y, 2) for y in x1]
     x4 = n.diff([x3])[0]
-    ipdb.set_trace()
+    x3new = x3
     
     dtz = datetime.datetime.utcfromtimestamp(T03[-1])
-    dtz2 = dtz.replace(minute=59, second=59)
-    # replacing the limit of the time-zone
+    dtz2 = dtz.replace(hour=23,minute=59, second=59)
     T03z = dtz2.replace(tzinfo=timezone.utc).timestamp()
 
     T03a = n.arange(T03[0], T03z, 720)
     T03b = T03a
-             
+
     if len(n.where(abs(x4) > 1)[0]) > 0:
-            x5 = n.where(abs(x4) > 1)[0][0]+1    
+        x5 = n.array([n.where(abs(x4) > 1)])[0][0]+1
 
-    # If T03a spans the complete time-range (len(T03a) == 120) and if there is schedule change, apply the corrections
-    if (len(T03a) == 120) and (len(n.where(abs(x4) > 1)[0]) > 0):
-        x1a = [x % 720 for x in T03a]
-        x3a = [round(ya, 2) for ya in x1a]
-        x4a = n.diff([x3a])[0]
-        # The change has happened at x5 and hence, I am looking for equivalent element in T03a corresponding to (x5-1) position of T03. That's because
-        # upto that position, T03 is unchanged and I want to keep T03a unchanged upto that equivalent position which will be given by nn1!
-        NN = abs(T03a - T03[x5-1])
-        nn1 = n.where(NN == NN.min())[0][0]
-        # Going upto nn1 requires it write [0:(nn1+1)] as the last element is not taken in Python. So, this portion is unchanged.
-        T03a1 = T03a[0:(nn1+1)]
-        # Edit the final element and make it T03ab
-        dta = datetime.datetime.utcfromtimestamp(T03[-1])
-        dta2 = dta.replace(minute=59, second=59)
-        # replacing the limit of the time-zone
-        T03ab = dta2.replace(tzinfo=timezone.utc).timestamp()
-        # Change starts here : Start it from (nn1 +1)the position as nn1 position is already covered. And, add the "change = x4[x5-1]" at (nn1 + 1)th position
-        T03a2 = n.arange(T03a[nn1+1] + x4[x5-1], T03ab, 720)
-        T03a = n.concatenate((T03a1, T03a2))
+    sch_ch1 = n.where(abs(x4)>1)[0]
+    SM = n.split(sch_ch1,n.argwhere(n.diff(sch_ch1)>1)[:,0]+1)   
 
-
-    # If T03a doesn't span the whole day, build it. And, apply the corrections for schedule change if it happens. 
+    # If T03a doesn't span the whole day, build it. 
     if len(T03a) < 120:
         dtest = int(datetime.datetime.utcfromtimestamp(T03[0]).strftime("%d"))
-        jj = 0
-        while True:
-            # subtract 720 until it gets to beginning of the day and in next while loop, add 720 until it gets to the end of the day
-            print('jj=%d' %(jj))
-            if abs((int(datetime.datetime.utcfromtimestamp(T03[0] - 720*jj).strftime("%d")) - dtest)) > 0:
-                T03b = n.insert(T03b, 0, T03[0] - 720*(jj-1))
-                print('jj= %1.2f' % (jj))
-                break
-            jj += 1
-
         jj1 = 0
         while True:
+            # subtract 720 until it gets to beginning of the day and in next while loop, add 720 until it gets to the end of the day
             print('jj1=%d' %(jj1))
-            if abs((int(datetime.datetime.utcfromtimestamp(T03[-1] + 720*jj1).strftime("%d")) - dtest)) > 0:
-                T03b = n.append(T03b, T03[-1] + 720*(jj1-1))
-                print('jj1 = %1.2f' % (jj1))
+            if abs((int(datetime.datetime.utcfromtimestamp(T03[0] - 720*jj1).strftime("%d")) - dtest)) > 0:
+                T03b = n.insert(T03b, 0, T03[0] - 720*(jj1-1))
+                print('jj1= %1.2f' % (jj1))
                 break
             jj1 += 1
 
-        dt = datetime.datetime.utcfromtimestamp(T03b[-1])
-        dt2 = dt.replace(minute=59, second=59)
-        # replacing the limit of the time-zone
-        T03bb = dt2.replace(tzinfo=timezone.utc).timestamp()
-        # T03a = n.arange(T03b[0], T03b[-1]+720, 720) ## commenting as it sometimes takes the data-points to next day
-        T03a = n.arange(T03b[0], T03bb, 720)
+        T03a = n.arange(T03b[0], T03z, 720)
+        
+    # And, apply the corrections for schedule change if it happens.     
+    if (len(n.where(abs(x4) > 1)[0]) > 0):    
+        # The change has happened at x5 and hence, I am looking for equivalent element in T03a corresponding to (x5-1) [which is SM] position of T03. That's because
+        # upto that position, T03 is unchanged and I want to keep T03a unchanged upto that equivalent position which will be given by nn1!
+        TT3 = []
+        NNJ = []
+        for j in range(0,len(SM)):
+            NN = abs(T03a - T03[SM[j][0]])
+            nn1 = n.where(NN == NN.min())[0][0]
+            NNJ.append(nn1)
+            if j == 0:
+            # Going upto nn1 requires it to write [0:(nn1+1)] as the last element is not taken in Python. So, this portion is unchanged.
+                T03a1 = T03a[0:(nn1+1)]
+                TT3.append(T03a1)
+            if j > 0:  
+            # For more than one schedule change. We begin where we had left. That is one element ahead of the last element of 'previous TT3' and add the change to all elements 
+            # for this batch. The length of the batch will be determined by len(T03aa1) : which is [NNJ[j-1] + 1]th position  upto new nn1 
+            # And repeat the process. 
+                T03aa1 = T03a[NNJ[j-1]+1:(nn1+1)] + x4[x5[j-1]-1]
+                Element = TT3[j-1][-1]+720 + x4[x5[j-1]-1]
+                T03a1 = n.arange(Element, Element + 720*(len(T03aa1)-1)+20, 720)
+                TT3.append(T03a1)
 
-        if len(n.where(abs(x4) > 1)[0]) > 0:
-            jj2 = (jj - 1) + x5
-            # Because the change happens at x5 in x3 (or T03), I need to cover upto x5-1. To have elements upto x5 - 1, I need to use the index upto x5 as the last index isn't taken in python !
-            T03a1 = T03a[0:jj2]
-            #T03a2 = n.arange(T03a[jj2] + x4[x5-1], T03b[-1] + 720, 720)
-            T03a2 = n.arange(T03a[jj2] + x4[x5-1], T03bb, 720)
-            # T03a = n.array([])
-            T03a = n.concatenate((T03a1, T03a2))
-
+        # Apply the last change here : Start it from the (final+1 = TT3a[-1] + 720) position of TT3 nn1 position. And, add the "change = x4[x5-1]" at (nn1 + 1)th position
+        TT3a = n.hstack(TT3)
+        #T03a2 = n.arange(T03a[nn1+1] + x4[x5[-1]-1], T03z, 720)
+        T03a2 = n.arange(TT3a[-1] + 720 + x4[x5[-1]-1], T03z, 720)
+        T03a = n.concatenate((TT3a, T03a2))
+        # If for some reasons (it can happen as the 'space' might have shrunk due to schedule change to accomodate more than 120 elements between the start and the end of the day), 
+        # the length of T03a exceeds 120 , keep only upto 120. 
+        if len(T03a) > 120:
+            T03a = T03a[0:120]
+    
+    # Construct full dB3 and ranges_gatesnew with NaNs
     dB3test = n.full([3999, 120], None)
     dB3test[:] = n.NaN
 
@@ -205,15 +195,13 @@ def save_var(DataDict):
     range_gatestest[:] = n.NaN
     range_gatesnew = n.full([3999, 120], None)
     
-    
     CT = 0
     CT1 = 0
     for i, x in enumerate(T03a):
         #print(i)
         DIFF = abs(T03 - x)
         MIN = min(abs(T03-x))
-        if MIN < 52:
-            #print(i)
+        if MIN < 2:
 
             CT += 1
             ij = n.where(DIFF == n.amin(DIFF))[0][0]
@@ -231,6 +219,19 @@ def save_var(DataDict):
 
             range_gatesnew[:, i] = range_gates2
 
+    FileName = os.path.join(path3,"Var.txt")
+    file = open(FileName, "w")
+    file.write("%s = %s\n" %("Date", str(cd.unix2dirname(T03[0]))))
+    file.write("%s = %s\n" %("CT", str(CT)))
+    file.write("%s = %s\n" %("CT1", str(CT1)))
+    file.write("%s = %s\n" %("T03_old", str(T03old)))
+    file.write("%s = %s\n" %("T03_new", str(len(T03))))
+    file.write("%s = %s\n" %("T03_old1", str(T03old1)))
+    file.write("%s = %s\n" %("T03_new1", str(T03)))
+    file.write("%s = %s\n" %("x3_old", str(x3old)))
+    file.write("%s = %s\n" %("x3_new", str(x3new)))
+    file.close()
+    
     #fig = plt.figure(figsize=(1.5*10, 1.5*3))
     fig = plt.figure(figsize=(1.5*6, 1.5*12))
   
@@ -262,10 +263,9 @@ def save_var(DataDict):
 
     #cb = plt.colorbar()
     plt.xlabel("Time (UTC)",weight='bold')
-    #plt.savefig(img_fname1, bbox_inches='tight')
-    #plt.savefig(img_fname2, bbox_inches='tight')
+    plt.savefig(img_fname1, bbox_inches='tight')
+    plt.savefig(img_fname2, bbox_inches='tight')
     #plt.show()
-    ipdb.set_trace()
     # plt.savefig(img_fname1)
     plt.close()
     plt.clf()
@@ -288,7 +288,7 @@ if __name__ == "__main__":
     else:
         for j in range(0, len(dirs)):
             dirs1 = dirs[j]
-            dtt1 = datetime.datetime.strptime('2021-05-08','%Y-%m-%d').date()
+            dtt1 = datetime.datetime.strptime('2021-05-31','%Y-%m-%d').date()
             dtt2 = datetime.datetime.strptime(dirs1[0:10],'%Y-%m-%d').date()
 
             if dirs1[0:10] == '2021-05-31':
