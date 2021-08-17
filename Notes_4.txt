@@ -103,10 +103,12 @@ And steps in that (...rti_2.py) algorithm are :
 2. Check Schedule Change.
 3. If Schedule change occurs twice in adjacent points, remove the middle one as it must be spurious (Raise error for more involved schedule changes).
 3new. If Schedule change occurs twice or more in adjacent or near-adjacent points, remove the middle one(s) as they must be (assumed -- not necessarily) spurious (No error required).
+3new1. Keep only those schedules which occur at least 5 times  throughout the day
+3new2. Keep only those schedules which occur at least 4 times continuously throughout the day.
 4. If T03a spans the whole day and if there is schedule change, apply the corrections. 
 5. If T03a doesn't span the whole day, build it. And, apply the corrections for schedule change if it happens. 
 45new. (a). If T03a doesn't span the whole day, build it.
-       (b). Then apply the corrections for schedule changes in batches.
+       (b). Then apply the corrections for schedule changes  -- if they still exist which they can --  in batches.
 6. Fill the missing data with NaN in the intensity (dB3) and the range (range_gates3).
             Steps for 6 : 
                ## STEPS :  

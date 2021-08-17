@@ -3,6 +3,7 @@
 # Stack frequency plot (subplots)
 
 # Load files from each of the folders using pickle and use those to make RTI plots.
+# 3. If Schedule change occurs twice in adjacent points, remove the middle one as it must be spurious (Raise error for more involved schedule changes).
 
 import numpy as n
 import matplotlib.pyplot as plt
@@ -267,8 +268,8 @@ if __name__ == "__main__":
             dtt1 = datetime.datetime.strptime('2021-05-31','%Y-%m-%d').date()
             dtt2 = datetime.datetime.strptime(dirs1[0:10],'%Y-%m-%d').date()
 
-            if dirs1[0:10] == '2021-04-30':
-            #if dirs1[0:4] == '2021':
+            #if dirs1[0:10] == '2021-04-30':
+            if dirs1[0:4] == '2021':
             #if dtt2 > dtt1 :
                 path = os.path.join(rootdir, dirs1)
                 print(dirs1)

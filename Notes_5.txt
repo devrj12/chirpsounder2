@@ -51,7 +51,8 @@ CT1 = 104
 T03_old = 20
 T03_new = 16
 
-And few of these have negative ranges for "type A" ionograms.
+And few of these have negative ranges for "type A" ionograms. I checked and these pass the filter -- r0 ~ 500 km for secondary hops. But, it is for the first (lower) hop(s) - the negative 
+ranges correspond to.
 
 ## This is 05:03. All type B ionograms. 2 out of 10 survive. But, those 2 type B as well ? So, type B is a headache ? 
 CT = 2

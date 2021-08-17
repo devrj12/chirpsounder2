@@ -4,6 +4,8 @@
 # Stack frequency plot (subplots)
 
 # Load files from each of the folders using pickle and use those to make RTI plots.
+#3new1. Keep only those schedules which occur at least 5 times  throughout the day
+#3new2. Keep only those schedules which occur at least 4 times continuously throughout the day.
 
 import numpy as n
 import matplotlib.pyplot as plt
@@ -291,7 +293,7 @@ if __name__ == "__main__":
             dtt1 = datetime.datetime.strptime('2021-05-31','%Y-%m-%d').date()
             dtt2 = datetime.datetime.strptime(dirs1[0:10],'%Y-%m-%d').date()
 
-            if dirs1[0:10] == '2021-05-31':
+            if dirs1[0:10] == '2021-05-02':
             #dir1 = output_dir1 + '/' + dirs[j]
             #for x in os.listdir(dir1):
             #    if x.endswith("h.data"):

@@ -4,6 +4,7 @@
 # Stack frequency plot (subplots)
 
 # Load files from each of the folders using pickle and use those to make RTI plots.
+# 3new. If Schedule change occurs twice or more in adjacent or near-adjacent points, remove the middle one(s) as they must be (assumed -- not necessarily) spurious (No error required).
 
 import numpy as n
 import matplotlib.pyplot as plt
