@@ -83,10 +83,11 @@ def save_var(DataDict):
     
     x1 = [x % 720 for x in T03]
     x3 = n.array([int(round(x)) for x in x1])
-    ipdb.set_trace()
     x3old = x3
     (x3u,C) = n.unique(x3,return_counts = True)
     x3c = x3u[C > 5]
+    
+    ipdb.set_trace() 
     
     x3n = []
     for i, j in enumerate(x3c):
