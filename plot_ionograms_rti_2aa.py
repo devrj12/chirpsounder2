@@ -5,7 +5,7 @@
 
 # Load files from each of the folders using pickle and use those to make RTI plots.
 #3new1. Keep only those schedules which occur at least 5 times  throughout the day
-#3new2. Keep only those schedules which occur at least 4 times continuously throughout the day.
+#3new2. Keep only those schedules which occur at least 3 times continuously throughout the day.
 
 import numpy as n
 import matplotlib.pyplot as plt
@@ -32,14 +32,15 @@ import ipdb
 
 freqlist = [60, 80, 100, 120, 160, 180]
 #rootdir = '/home/dev/Downloads/chirp_juha2b'
-rootdir = '/media/dev/Seagate Backup Plus Drive/lfm_files'
+#rootdir = '/media/dev/Seagate Backup Plus Drive/lfm_files'
+rootdir = '/media/dev/Seagate Backup Plus Drive'
 # for subdir, dirs, files in os.walk(rootdir):
 #dirs = sorted(os.listdir(rootdir))
 
 output_dir1 = "/home/dev/Downloads/chirp_juha2b/Plots20"
 output_dir2 = "/home/dev/Downloads/chirp_juha2b/Plots20/AllRTI"
 
-output_dir21 = "/home/dev/Downloads/chirp_juha2b/Plots22"
+output_dir21 = "/home/dev/Downloads/chirp_juha2b/Plots23"
 dirs = sorted(os.listdir(output_dir1))
 
 
@@ -53,10 +54,10 @@ def save_var(DataDict):
     print('check')
     
     path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'b.data'
-    path2 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'j.data'
+    path2 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'k.data'
 
-    img_fname1 = "%s/%s/RTIj1-%s.png" % (output_dir1, dirs1, dirs1[0:10])
-    img_fname2 = "%s/RTI-%sj1.png" % (output_dir2, dirs1[0:10])
+    img_fname1 = "%s/%s/RTIk-%s.png" % (output_dir1, dirs1, dirs1[0:10])
+    img_fname2 = "%s/RTI-%sk.png" % (output_dir2, dirs1[0:10])
 
   
     with open(path2, 'rb') as f:
@@ -87,7 +88,23 @@ def save_var(DataDict):
     (x3u,C) = n.unique(x3,return_counts = True)
     x3c = x3u[C > 5]
     
-    ipdb.set_trace() 
+    ## Check if x3c have three continous values for its elements
+    x3c1 = {}
+    for i, j in enumerate(x3c):
+        AN = n.where(x3==x3c[i])[0]
+        AN1 = n.where(n.diff(AN)==1)
+        AN2 = AN[AN1[0]]
+        if len(AN2) > 3:
+            x3c1[i] = x3c[i]
+    
+    # Get the elements from x3c1                
+    x3c2 = []
+    for j in x3c1.keys():
+           x3c2.append(x3c1[j])
+    
+    # Rename x3c2 as x3c as we would want to work with x3c        
+    x3c = n.array(x3c2)
+
     
     x3n = []
     for i, j in enumerate(x3c):
@@ -187,16 +204,16 @@ def save_var(DataDict):
             T03a = T03a[0:120]
     
     # Construct full dB3 and ranges_gatesnew with NaNs
-    dB3test = n.full([3999, 120], None)
+    dB3test = n.full([range_gates3.shape[0], 120], None)
     dB3test[:] = n.NaN
 
     DataDict['DBallnew'] = {}
     for k in [j for j in DataDict['DBall'].keys()]:
-        DataDict['DBallnew'][k] = n.full([3999, 120], None)
+        DataDict['DBallnew'][k] = n.full([range_gates3.shape[0] , 120], None)
 
-    range_gatestest = n.full([3999, 120], None)
+    range_gatestest = n.full([range_gates3.shape[0], 120], None)
     range_gatestest[:] = n.NaN
-    range_gatesnew = n.full([3999, 120], None)
+    range_gatesnew = n.full([range_gates3.shape[0], 120], None)
     
     CT = 0
     CT1 = 0
@@ -219,7 +236,7 @@ def save_var(DataDict):
             CT1 += 1
             for k in [j for j in DataDict['DBall'].keys()]:
                 DataDict['DBallnew'][k][:, i] = dB3test[:, i]
-
+                
             range_gatesnew[:, i] = range_gates2
 
     FileName = os.path.join(path3,"Var.txt")
@@ -238,7 +255,7 @@ def save_var(DataDict):
     #fig = plt.figure(figsize=(1.5*10, 1.5*3))
     fig = plt.figure(figsize=(1.5*6, 1.5*12))
   
-    fig.suptitle("RTI plots : %s UTC" % datetime.datetime.utcfromtimestamp(T03[1]).strftime('%Y-%m-%d'),weight='bold')
+    fig.suptitle("RTI Plots : %s UTC" % datetime.datetime.utcfromtimestamp(T03[1]).strftime('%Y-%m-%d'),weight='bold',fontsize=14)
     new_times = [datetime.datetime.utcfromtimestamp(x) for x in T03a]
     new_times = n.array(new_times)
     new_times1 = [datetime.datetime.fromtimestamp(x) for x in T03a]  # local-time
@@ -257,19 +274,24 @@ def save_var(DataDict):
         #plt.title("RTI plot for %1.2f MHz" %(freqs[freqlist[k.astype(n.int64)]]/1e6))
         #plt.xlabel("Time (UTC)")
         #plt.ylabel("One-way range offset (km)")
-        plt.ylabel("%1.2f MHz\n Range (km)" %(k), weight='bold')
+        plt.ylabel("%1.2f MHz\n Range (km)" %(k), weight='bold',fontsize=12)
         plt.ylim([0, 4000])
         plt.xlim(new_times[0], new_times[-1])
-        plt.tight_layout(pad=3.0)
+        plt.tight_layout(rect=[0, 0.07, 1, 0.99],pad=1.0)
+        #plt.tight_layout(rect=[0.1, 0.4, 0.85, 0.99],pad=1.0)
+        #plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+        #[left, bottom, right, top] in normalized (0, 1) figure coordinates
+        #plt.tight_layout(pad=1.0)
         #plt.savefig(img_fname1, bbox_inches='tight')
         #plt.savefig(img_fname2, bbox_inches='tight')
 
     #cb = plt.colorbar()
-    plt.xlabel("Time (UTC)",weight='bold')
+    plt.xlabel("Time (UTC)", weight='bold', fontsize=12)
     plt.savefig(img_fname1, bbox_inches='tight')
     plt.savefig(img_fname2, bbox_inches='tight')
     #plt.show()
     # plt.savefig(img_fname1)
+    #ipdb.set_trace()
     plt.close()
     plt.clf()
     # ho.close()
@@ -291,16 +313,16 @@ if __name__ == "__main__":
     else:
         for j in range(0, len(dirs)):
             dirs1 = dirs[j]
-            dtt1 = datetime.datetime.strptime('2021-05-31','%Y-%m-%d').date()
+            dtt1 = datetime.datetime.strptime('2021-06-17','%Y-%m-%d').date()
             dtt2 = datetime.datetime.strptime(dirs1[0:10],'%Y-%m-%d').date()
 
-            if dirs1[0:10] == '2021-05-02':
+            #if dirs1[0:10] == '2021-05-02':
             #dir1 = output_dir1 + '/' + dirs[j]
             #for x in os.listdir(dir1):
             #    if x.endswith("h.data"):
 
             #if dirs1[0:4] == '2021': 
-            #if dtt2 > dtt1 :
+            if dtt2 > dtt1 :
                     path = os.path.join(rootdir, dirs1)
                     print(dirs1)
                     os.chdir(path)

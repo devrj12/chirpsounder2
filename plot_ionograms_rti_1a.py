@@ -26,10 +26,11 @@ import ipdb
 
 
 #rootdir = '/home/dev/Downloads/chirp_juha2b'
-rootdir = '/media/dev/Seagate Backup Plus Drive/lfm_files'
+rootdir = '/media/dev/Seagate Backup Plus Drive'
 
 # for subdir, dirs, files in os.walk(rootdir):
 dirs = sorted(os.listdir(rootdir))
+dirs = dirs[3:-1]
 
 output_dir1 = "/home/dev/Downloads/chirp_juha2b/Plots20"
 freqlist = [60, 80, 100, 120, 140, 160] 
@@ -102,8 +103,6 @@ def plot_ionogram(conf, f, Datadict, normalize_by_frequency=True):
     dr = dt*c.c/1e3    
     range_gates = dr+2*ranges/1e3
     r0 = range_gates[max_range_idx]
-    SSin = k_largest_index_argsort(S, k=10)
-    SSrn = n.sort(range_gates[SSin[:, 1]])
     
     DataDict["range_gates"] = range_gates
     
@@ -118,6 +117,9 @@ def plot_ionogram(conf, f, Datadict, normalize_by_frequency=True):
     pos = n.argwhere(dB1a > 0)
     rg_2 = range_gates[pos]
     ast = n.std(dB2)
+    if len(dB2) == 0:
+        print('No useful data')     
+        sys.exit()
     #ipdb.set_trace()
     am = n.max(dB2)
     apos = n.argwhere(dB2 > (am -3*ast))
@@ -162,18 +164,16 @@ def plot_ionogram(conf, f, Datadict, normalize_by_frequency=True):
         DataDict['Time'] = T03
         DataDict['range_gates3'] = range_gates3
         DataDict['ch1'] = ch1
-        ipdb.set_trace()
         print('ch1_inside=%d' %(ch1))
 
 def save_var(DataDict):
     #global ch1, dB3, dB3a, dB3b, dB3c, T03, T01, range_gates, range_gates2, range_gates3, freqs
 
     #path1 = rootdir + '/' + dirs1 + '/' + dirs1[5:10] + 'c.data'
-    path1 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'j.data'
+    path1 = output_dir1 + '/' + dirs1 + '/' + dirs1[5:10] + 'k.data'
     #path1 = output_dir1 + '/' + cd.unix2dirname(T03[0])[5:10] + '.data'
 
     print(path1)
-    ipdb.set_trace()
     with open(path1, 'wb') as f:
         pickle.dump(DataDict, f)
 
@@ -199,17 +199,18 @@ if __name__ == "__main__":
         for j in range(0, len(dirs)):
             dirs1 = dirs[j]
             
-            dtt1 = datetime.datetime.strptime('2021-05-31','%Y-%m-%d').date()
+            dtt1 = datetime.datetime.strptime('2021-07-24','%Y-%m-%d').date()
             dtt2 = datetime.datetime.strptime(dirs1[0:10],'%Y-%m-%d').date()
             #ipdb.set_trace()
             #if dtt2 > dtt1 :
-            if dirs1[0:10] == '2021-05-02':
+            if dirs1[0:10] == '2021-06-07':
             #if dirs1[0:4] == '2021':
                 path = os.path.join(rootdir, dirs1)
                 print(dirs1)
                 os.chdir(path)
                 fl = glob.glob("%s/lfm*.h5" % (path))
                 fl.sort()
+                print(len(fl))
 
                 ch1 = 0
                 DataDict = {}
@@ -218,7 +219,7 @@ if __name__ == "__main__":
 
                 # fl = glob.glob("%s/*/lfm*.h5" % (conf.output_dir))
                 # fl = glob.glob("%s/lfm*.h5" % (conf.output_dir))
-                
+
                 if len(fl) > 1:
                     for jf, f in enumerate(fl):
                         print('jf=%d' %(jf))
